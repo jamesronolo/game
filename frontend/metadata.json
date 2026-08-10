@@ -1,0 +1,6 @@
+{
+  "name": "Quiz Game",
+  "description": "React + Vite + Tailwind CSS quiz and classroom game platform with custom question sets, student tracking, assignments, and free teacher utilities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
