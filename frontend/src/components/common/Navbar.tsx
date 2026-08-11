@@ -119,6 +119,25 @@ export const Navbar: React.FC = () => {
               )}
             </button>
 
+            {/* Quick Multiplayer Action Buttons */}
+            <button
+              onClick={() => setActiveTab('multiplayer-join')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-200"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Join Game</span>
+            </button>
+
+            {currentUser.role === 'teacher' && (
+              <button
+                onClick={() => setActiveTab('host-lobby')}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors border border-amber-300"
+              >
+                <Crown className="w-3.5 h-3.5 text-amber-600" />
+                <span>Host Live Class</span>
+              </button>
+            )}
+
             {/* Pro Status Upgrade Button */}
             <button
               onClick={() => setActiveTab('pro-upgrade')}

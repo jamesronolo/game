@@ -11,6 +11,8 @@ import { AssignmentsView } from './components/assignments/AssignmentsView';
 import { ProgressView } from './components/dashboard/ProgressView';
 import { RewardsView } from './components/rewards/RewardsView';
 import { ProUpgradeView } from './components/pro-upgrade/ProUpgradeView';
+import { MultiplayerLobby } from './components/multiplayer/MultiplayerLobby';
+import { HostLobbyView } from './components/multiplayer/HostLobbyView';
 
 const MainContent: React.FC = () => {
   const {
@@ -19,8 +21,6 @@ const MainContent: React.FC = () => {
     selectedSet,
     activeAssignment,
     setActiveTab,
-    questionSets,
-    gamesCatalog,
   } = useEduPlay();
 
   // If in game play view, render full-screen game launcher
@@ -49,6 +49,8 @@ const MainContent: React.FC = () => {
         {activeTab === 'progress' && <ProgressView />}
         {activeTab === 'rewards' && <RewardsView />}
         {activeTab === 'pro-upgrade' && <ProUpgradeView />}
+        {activeTab === 'multiplayer-join' && <MultiplayerLobby />}
+        {activeTab === 'host-lobby' && <HostLobbyView />}
       </main>
 
       {/* Footer */}

@@ -231,19 +231,31 @@ export const GamesCatalogView: React.FC = () => {
               </select>
             </div>
 
-            <div className="flex items-center justify-end gap-3 mt-6">
+            <div className="flex items-center justify-between gap-3 mt-6">
               <button
-                onClick={() => setSelectedGameForModal(null)}
-                className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-semibold"
+                onClick={() => {
+                  setSelectedGameForModal(null);
+                  setActiveTab('host-lobby');
+                }}
+                className="px-3.5 py-2 rounded-xl bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300 text-xs font-bold flex items-center gap-1.5"
               >
-                Cancel
+                <Crown className="w-3.5 h-3.5 text-amber-600" /> Host Live Room
               </button>
-              <button
-                onClick={confirmPlayWithSet}
-                className="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md"
-              >
-                Start Playing Game
-              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelectedGameForModal(null)}
+                  className="px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmPlayWithSet}
+                  className="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md"
+                >
+                  Start Playing Game
+                </button>
+              </div>
             </div>
           </div>
         </div>
