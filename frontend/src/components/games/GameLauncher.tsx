@@ -300,17 +300,17 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
       </header>
 
       {/* Main Play Area */}
-      <main className="flex-1 relative flex flex-col items-center justify-center p-3 sm:p-6 max-w-6xl mx-auto w-full">
+      <main className="flex-1 relative flex flex-col items-center justify-center p-4 sm:p-8 w-full max-w-7xl mx-auto min-h-[80vh]">
         {questions.length === 0 ? (
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-2xl my-auto">
-            <HelpCircle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">No Questions Found</h2>
-            <p className="text-xs text-slate-400 mb-6">
-              The question set "<span className="text-sky-400">{questionSet?.title || 'Selected Set'}</span>" contains no questions yet.
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-10 text-center shadow-2xl my-auto">
+            <HelpCircle className="w-14 h-14 text-amber-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-extrabold text-white mb-2">No Questions Found</h2>
+            <p className="text-sm text-slate-400 mb-6">
+              The question set "<span className="text-sky-400 font-semibold">{questionSet?.title || 'Selected Set'}</span>" contains no questions yet.
             </p>
             <button
               onClick={onExit}
-              className="px-6 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow-md transition-all"
+              className="px-8 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm rounded-2xl shadow-lg transition-all"
             >
               Exit to Games Catalog
             </button>
@@ -319,14 +319,14 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
           renderGameMechanic()
         ) : (
           /* Game Over Victory Screen */
-          <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 text-center shadow-2xl animate-in zoom-in-95 duration-200 my-auto">
-            <div className="w-20 h-20 bg-gradient-to-tr from-amber-500 to-rose-500 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-amber-500/20 mb-4 animate-bounce">
-              <Trophy className="w-10 h-10" />
+          <div className="w-full max-w-3xl sm:max-w-4xl bg-slate-900 border-2 border-slate-800 rounded-3xl p-8 sm:p-12 text-center shadow-2xl animate-in zoom-in-95 duration-200 my-auto">
+            <div className="w-24 h-24 bg-gradient-to-tr from-amber-500 to-rose-500 rounded-3xl mx-auto flex items-center justify-center text-white shadow-2xl shadow-amber-500/30 mb-6 animate-bounce">
+              <Trophy className="w-12 h-12" />
             </div>
 
-            <h2 className="text-3xl font-black text-white mb-1">Lesson Completed!</h2>
-            <p className="text-slate-400 text-sm mb-6">
-              Awesome work playing <span className="text-sky-400 font-semibold">{game.name}</span>!
+            <h2 className="text-4xl font-black text-white mb-2">Lesson Completed!</h2>
+            <p className="text-slate-300 text-base mb-8">
+              Awesome work playing <span className="text-sky-400 font-bold">{game.name}</span>!
             </p>
 
             {/* Score Summary Box */}
@@ -386,41 +386,41 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
 
       {/* Universal Question Challenge Modal (Used by games that spin/interact to trigger questions) */}
       {isQuestionModalOpen && currentQuestion && !isGameOver && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-150">
+          <div className="w-full max-w-3xl sm:max-w-4xl bg-slate-900 border-2 border-slate-700/80 rounded-3xl p-8 sm:p-10 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             {/* Header / Type badge */}
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400 bg-sky-950 px-2.5 py-1 rounded-full border border-sky-800">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+              <span className="text-xs font-bold uppercase tracking-widest text-sky-400 bg-sky-950/90 px-3.5 py-1.5 rounded-full border border-sky-800/80 shadow-sm">
                 Question {currentQuestionIndex + 1} of {questions.length}
               </span>
 
               <button
                 onClick={() => speakText(currentQuestion.promptText)}
-                className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded-lg transition-colors"
+                className="flex items-center gap-2 text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl transition-colors shadow-sm"
                 title="Read question aloud"
               >
-                <Volume2 className="w-3.5 h-3.5 text-sky-400" />
-                <span>Listen</span>
+                <Volume2 className="w-4 h-4 text-sky-400" />
+                <span>Listen Aloud</span>
               </button>
             </div>
 
             {/* Prompt Text */}
-            <h3 className="text-xl font-bold text-white mb-4 leading-snug">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-6 leading-snug tracking-tight">
               {currentQuestion.promptText}
             </h3>
 
             {/* Hint toggler */}
             {currentQuestion.hint && (
-              <div className="mb-4">
+              <div className="mb-6">
                 <button
                   onClick={() => setShowHint(!showHint)}
-                  className="text-xs text-amber-400 hover:underline flex items-center gap-1"
+                  className="text-xs sm:text-sm font-semibold text-amber-400 hover:underline flex items-center gap-1.5"
                 >
-                  <HelpCircle className="w-3.5 h-3.5" />
+                  <HelpCircle className="w-4 h-4" />
                   <span>{showHint ? 'Hide Hint' : 'Need a Hint?'}</span>
                 </button>
                 {showHint && (
-                  <p className="mt-1 text-xs text-amber-200 bg-amber-950/40 border border-amber-800/60 p-2.5 rounded-lg">
+                  <p className="mt-2 text-xs sm:text-sm font-medium text-amber-200 bg-amber-950/50 border border-amber-800/80 p-4 rounded-xl leading-relaxed">
                     💡 Hint: {currentQuestion.hint}
                   </p>
                 )}
@@ -429,16 +429,16 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
 
             {/* Options List (Multiple Choice or Text Input) */}
             {currentQuestion.options && currentQuestion.options.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 {currentQuestion.options.map((opt, idx) => {
                   const isSelected = selectedOption === opt;
-                  let btnStyle = 'bg-slate-800/90 border-slate-700 text-slate-100 hover:bg-slate-700';
+                  let btnStyle = 'bg-slate-800/90 border-slate-700/80 text-slate-100 hover:bg-slate-750 hover:border-sky-500/50';
 
                   if (feedback && isSelected) {
                     btnStyle =
                       feedback === 'correct'
-                        ? 'bg-emerald-600 border-emerald-400 text-white font-bold ring-2 ring-emerald-400'
-                        : 'bg-rose-600 border-rose-400 text-white font-bold ring-2 ring-rose-400';
+                        ? 'bg-emerald-600 border-emerald-400 text-white font-black ring-4 ring-emerald-500/30 scale-[1.02]'
+                        : 'bg-rose-600 border-rose-400 text-white font-black ring-4 ring-rose-500/30 scale-[1.02]';
                   }
 
                   return (
@@ -449,14 +449,14 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
                         setSelectedOption(opt);
                         handleAnswerSubmit(opt);
                       }}
-                      className={`p-3.5 rounded-xl border text-left text-sm font-medium transition-all duration-150 flex items-center justify-between ${btnStyle}`}
+                      className={`p-5 sm:p-6 rounded-2xl border-2 text-left text-base sm:text-lg font-bold transition-all duration-150 flex items-center justify-between shadow-md ${btnStyle}`}
                     >
-                      <span>{opt}</span>
+                      <span className="leading-snug">{opt}</span>
                       {feedback && isSelected && (
                         feedback === 'correct' ? (
-                          <CheckCircle2 className="w-5 h-5 text-white" />
+                          <CheckCircle2 className="w-6 h-6 text-white shrink-0 ml-2" />
                         ) : (
-                          <XCircle className="w-5 h-5 text-white" />
+                          <XCircle className="w-6 h-6 text-white shrink-0 ml-2" />
                         )
                       )}
                     </button>
@@ -471,19 +471,19 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
                     e.preventDefault();
                     if (selectedOption) handleAnswerSubmit(selectedOption);
                   }}
-                  className="space-y-3"
+                  className="space-y-4"
                 >
                   <input
                     type="text"
                     value={selectedOption || ''}
                     onChange={(e) => setSelectedOption(e.target.value)}
                     placeholder="Type your answer here..."
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-hidden focus:border-sky-500"
+                    className="w-full bg-slate-950 border-2 border-slate-700 rounded-2xl px-5 py-4 text-lg font-bold text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 shadow-inner"
                   />
                   <button
                     type="submit"
                     disabled={!selectedOption || feedback !== null}
-                    className="w-full py-3 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-bold rounded-xl transition-colors"
+                    className="w-full py-4 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 text-white font-black text-base sm:text-lg rounded-2xl shadow-xl transition-all"
                   >
                     Submit Answer
                   </button>
@@ -494,20 +494,20 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
             {/* Instant Feedback Notice */}
             {feedback && (
               <div
-                className={`p-3 rounded-xl font-bold text-center text-sm flex items-center justify-center gap-2 animate-in fade-in zoom-in-95 ${
+                className={`p-4 sm:p-5 rounded-2xl font-black text-center text-base sm:text-lg flex items-center justify-center gap-3 animate-in fade-in zoom-in-95 shadow-lg ${
                   feedback === 'correct'
-                    ? 'bg-emerald-950 text-emerald-300 border border-emerald-700'
-                    : 'bg-rose-950 text-rose-300 border border-rose-700'
+                    ? 'bg-emerald-950 text-emerald-200 border-2 border-emerald-600'
+                    : 'bg-rose-950 text-rose-200 border-2 border-rose-600'
                 }`}
               >
                 {feedback === 'correct' ? (
                   <>
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
                     <span>Brilliant! Correct Answer (+100 pts)</span>
                   </>
                 ) : (
                   <>
-                    <XCircle className="w-5 h-5 text-rose-400" />
+                    <XCircle className="w-6 h-6 text-rose-400 shrink-0" />
                     <span>Nice try! Correct was: {currentQuestion.answer}</span>
                   </>
                 )}

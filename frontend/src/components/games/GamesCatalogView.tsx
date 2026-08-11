@@ -198,62 +198,75 @@ export const GamesCatalogView: React.FC = () => {
 
       {/* Select Question Set Modal */}
       {selectedGameForModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center">
-                <BookOpen className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg text-slate-900">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
+          <div className="w-full max-w-3xl sm:max-w-4xl bg-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            {/* Header with Game Banner */}
+            <div className="relative rounded-2xl overflow-hidden bg-slate-900 text-white p-6 sm:p-8 mb-6 flex flex-col sm:flex-row items-center gap-6">
+              {selectedGameForModal.imageUrl && (
+                <img
+                  src={selectedGameForModal.imageUrl}
+                  alt={selectedGameForModal.name}
+                  className="w-full sm:w-48 h-32 object-cover rounded-xl shadow-lg shrink-0"
+                />
+              )}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded-full text-xs font-bold uppercase tracking-wider">
+                    {selectedGameForModal.badge}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-300">
+                    Grade {selectedGameForModal.minGrade}
+                  </span>
+                </div>
+                <h3 className="font-extrabold text-2xl sm:text-3xl text-white">
                   Launch {selectedGameForModal.name}
                 </h3>
-                <p className="text-xs text-slate-500">
-                  Select a question set to load into this game:
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  {selectedGameForModal.description}
                 </p>
               </div>
             </div>
 
-            <div className="space-y-3 my-4">
-              <label className="text-xs font-semibold text-slate-700 block">
-                Choose Content Set:
+            <div className="space-y-4 my-6">
+              <label className="text-sm font-bold text-slate-800 uppercase tracking-wider block">
+                Select Content Question Set ({questionSets.length} Available):
               </label>
               <select
                 value={selectedSetId}
                 onChange={(e) => setSelectedSetId(e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 text-xs font-semibold focus:outline-hidden focus:border-sky-500"
+                className="w-full p-4 sm:p-5 rounded-2xl border-2 border-slate-200 bg-slate-50 text-slate-900 text-sm sm:text-base font-bold focus:outline-none focus:border-sky-500 shadow-sm"
               >
                 {questionSets.map((set) => (
                   <option key={set.id} value={set.id}>
-                    {set.title} ({set.questions.length} Questions) - {set.subject}
+                    📚 {set.title} ({set.questions.length} Questions) — {set.subject} ({set.gradeLevel})
                   </option>
                 ))}
               </select>
             </div>
 
-            <div className="flex items-center justify-between gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-slate-100">
               <button
                 onClick={() => {
                   setSelectedGameForModal(null);
                   setActiveTab('host-lobby');
                 }}
-                className="px-3.5 py-2 rounded-xl bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300 text-xs font-bold flex items-center gap-1.5"
+                className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-300 text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition"
               >
-                <Crown className="w-3.5 h-3.5 text-amber-600" /> Host Live Room
+                <Crown className="w-4 h-4 text-amber-600" /> Host Live Classroom Room
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <button
                   onClick={() => setSelectedGameForModal(null)}
-                  className="px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-semibold"
+                  className="px-5 py-3.5 rounded-2xl text-slate-600 hover:bg-slate-100 text-sm font-bold transition"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmPlayWithSet}
-                  className="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md"
+                  className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-sm sm:text-base font-black shadow-xl shadow-sky-500/25 flex items-center justify-center gap-2 transition"
                 >
-                  Start Playing Game
+                  <Play className="w-4 h-4 fill-current" /> Start Game Now
                 </button>
               </div>
             </div>
