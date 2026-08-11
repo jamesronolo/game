@@ -39,6 +39,7 @@ import {
   MOCK_ATTEMPTS,
   MOCK_STICKERS,
   MOCK_ROSTER,
+  GAME_IMAGE_MAP,
 } from '../data/mockData';
 import { toggleSound as setAudioSound, isSoundEnabled } from '../utils/soundEffects';
 
@@ -159,7 +160,14 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       try {
         const games = await fetchGamesCatalog();
-        if (games && games.length > 0) setGamesCatalog(games);
+        if (games && games.length > 0) {
+          setGamesCatalog(
+            games.map((g) => ({
+              ...g,
+              imageUrl: GAME_IMAGE_MAP[g.slug] || g.imageUrl,
+            }))
+          );
+        }
       } catch (err) {
         console.warn('Backend games load error (using mock fallback):', err);
       }

@@ -149,4 +149,6 @@ export type ActiveTab =
   | 'teacher-tools'
   | 'progress'
   | 'rewards'
-  | 'pro-upgrade';
+  | 'pro-upgrade'
+  | 'multiplayer-join'
+  | 'host-lobby';

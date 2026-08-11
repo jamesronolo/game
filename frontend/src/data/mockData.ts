@@ -9,6 +9,17 @@ import flashcardsImg from '../assets/images/flashcards_game_1785564211020.jpg';
 import rollAndReadImg from '../assets/images/roll_and_read_game_1785564222038.jpg';
 import oceanQuestImg from '../assets/images/ocean_quest_game_1785564235278.jpg';
 
+export const GAME_IMAGE_MAP: Record<string, string> = {
+  'wheel-spin': wheelSpinImg,
+  'ship-battle': shipBattleImg,
+  'alien-spelling': alienSpellingImg,
+  'crane-game': craneGameImg,
+  'magic-potions': magicPotionsImg,
+  'flashcards': flashcardsImg,
+  'roll-and-read': rollAndReadImg,
+  'ocean-quest': oceanQuestImg,
+};
+
 export const MOCK_USERS: User[] = [
   {
     id: 'u-teacher-1',

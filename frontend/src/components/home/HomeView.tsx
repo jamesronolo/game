@@ -130,6 +130,39 @@ export const HomeView: React.FC = () => {
         </div>
       </section>
 
+      {/* Live Multiplayer Quick Join Banner */}
+      <section className="rounded-3xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-amber-300/30">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-2xl shadow-inner">
+            ⚡
+          </div>
+          <div>
+            <span className="inline-flex items-center gap-1 bg-white/20 text-yellow-100 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full tracking-wider mb-1">
+              <Sparkles className="w-3 h-3 text-yellow-300" /> Real-Time Multiplayer
+            </span>
+            <h2 className="text-xl sm:text-2xl font-black">Joining a Live Classroom Game?</h2>
+            <p className="text-xs sm:text-sm text-amber-100 mt-0.5">
+              Enter your teacher's 4-digit room code to join live scoreboards instantly!
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button
+            onClick={() => setActiveTab('multiplayer-join')}
+            className="w-full sm:w-auto px-6 py-3.5 bg-white text-slate-950 hover:bg-amber-50 font-black text-sm rounded-2xl shadow-lg transition flex items-center justify-center gap-2 whitespace-nowrap"
+          >
+            Enter Game Code <ChevronRight className="w-4 h-4 text-slate-950" />
+          </button>
+          <button
+            onClick={() => setActiveTab('host-lobby')}
+            className="hidden lg:flex px-5 py-3.5 bg-slate-950/40 hover:bg-slate-950/60 text-white font-bold text-sm rounded-2xl border border-white/20 transition items-center gap-2 whitespace-nowrap"
+          >
+            Host Room
+          </button>
+        </div>
+      </section>
+
       <section className="grid gap-6 md:grid-cols-3">
         {[
           { title: 'One set, many games', body: 'Reuse the same questions across different playful formats without rebuilding everything.', icon: Zap },
@@ -320,8 +353,16 @@ export const HomeView: React.FC = () => {
               }}
               className="cursor-pointer rounded-[1.4rem] border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className="flex h-36 items-end rounded-[1.1rem] bg-slate-900 p-3 text-white">
-                <div className="rounded-full border border-white/20 bg-slate-900/70 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.25em]">
+              <div className="relative flex h-36 items-end rounded-[1.1rem] bg-slate-900 p-3 text-white overflow-hidden">
+                {game.imageUrl && (
+                  <img
+                    src={game.imageUrl}
+                    alt={game.name}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                <div className="relative z-10 rounded-full border border-white/20 bg-slate-900/70 backdrop-blur-xs px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.25em]">
                   {game.badge}
                 </div>
               </div>
