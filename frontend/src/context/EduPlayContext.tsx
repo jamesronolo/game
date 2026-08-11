@@ -178,9 +178,12 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
           // Merge backend sets with MOCK_QUESTION_SETS: if a backend set has no questions,
           // use the questions from the matching mock set as a fallback
           const merged = sets.map((backendSet) => {
+            const mockMatch = MOCK_QUESTION_SETS.find((m) => m.id === backendSet.id);
+            if (mockMatch && mockMatch.questions.length > (backendSet.questions?.length || 0)) {
+              return { ...backendSet, questions: mockMatch.questions };
+            }
             const hasQuestions = Array.isArray(backendSet.questions) && backendSet.questions.length > 0;
             if (hasQuestions) return backendSet;
-            const mockMatch = MOCK_QUESTION_SETS.find((m) => m.id === backendSet.id);
             return mockMatch ? { ...backendSet, questions: mockMatch.questions } : backendSet;
           });
           // Also include any mock sets not yet in the backend (qs-6, qs-7, qs-8 may not be seeded yet)
