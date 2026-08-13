@@ -189,18 +189,18 @@ export const TeacherToolsView: React.FC = () => {
     resetStudentForm();
   };
 
-  // Name Wheel Spin Action (9-second dramatic spin with 4-second slow crawl finish)
+  // Name Wheel Spin Action (8-second dramatic spin with decelerating stop)
   const spinNameWheel = () => {
     if (isSpinning || classStudents.length === 0) return;
 
     setIsSpinning(true);
     setSelectedStudent(null);
 
-    // Realistic decelerating tick sounds over 9 seconds (fast initial spin, 4-second slow crawl at end)
+    // Realistic decelerating tick sound sequence timed over exactly 8 seconds (8000ms)
     const tickDelays = [
-      80, 160, 240, 320, 400, 480, 560, 640, 720, 800, 880, 960, 1060, 1170, 1290,
-      1420, 1560, 1720, 1900, 2100, 2320, 2560, 2820, 3110, 3430, 3780, 4170, 4600,
-      5080, 5600, 6180, 6820, 7520, 8250, 8750
+      70, 150, 230, 310, 390, 470, 550, 630, 710, 790, 880, 980, 1090, 1210, 1340,
+      1480, 1630, 1800, 1980, 2180, 2400, 2640, 2900, 3180, 3480, 3810, 4170, 4560,
+      4990, 5460, 5970, 6530, 7140, 7700
     ];
     tickDelays.forEach((delay) => {
       setTimeout(() => {
@@ -218,7 +218,7 @@ export const TeacherToolsView: React.FC = () => {
       setSelectedStudent(`${picked.avatar} ${picked.name}`);
       playCheerSound();
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-    }, 9000);
+    }, 8000);
   };
 
   // Student Grouper Action
@@ -364,59 +364,70 @@ export const TeacherToolsView: React.FC = () => {
             </p>
           </div>
 
-          {/* Wheel Stage Container */}
-          <div className="relative w-[340px] h-[340px] sm:w-[460px] sm:h-[460px] my-4 flex items-center justify-center">
-            {/* Top Pointer Needle */}
-            <div className="absolute -top-5 z-20 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[38px] border-t-emerald-500 drop-shadow-xl" />
+          {/* Wheel Stage Container - Responsive & Centered */}
+          <div className="relative w-full max-w-[320px] sm:max-w-[460px] md:max-w-[480px] aspect-square my-4 flex items-center justify-center">
+            {/* Top Pointer Needle - Centered precisely */}
+            <div className="absolute -top-4 sm:-top-6 left-1/2 -translate-x-1/2 z-30 w-0 h-0 border-l-[18px] sm:border-l-[24px] border-l-transparent border-r-[18px] sm:border-r-[24px] border-r-transparent border-t-[32px] sm:border-t-[44px] border-t-emerald-500 drop-shadow-2xl" />
 
             {/* Outer Rim */}
             <div className="w-full h-full rounded-full border-8 sm:border-[12px] border-slate-900 bg-slate-950 shadow-2xl relative overflow-hidden flex items-center justify-center">
               <div
-                className="w-full h-full rounded-full relative transition-transform duration-[9000ms] cubic-bezier(0.08, 0.8, 0.15, 1.0)"
+                className="w-full h-full rounded-full relative transition-transform duration-[8000ms] cubic-bezier(0.08, 0.8, 0.15, 1.0)"
                 style={{ transform: `rotate(${wheelRotation}deg)` }}
               >
-                {classStudents.map((st, i) => {
-                  const sliceAngle = 360 / classStudents.length;
-                  const startAngle = sliceAngle * i;
-                  const bisectorAngle = startAngle + sliceAngle / 2;
-                  const bgColors = ['#10b981', '#06b6d4', '#8b5cf6', '#f59e0b', '#ec4899', '#3b82f6'];
+                <svg viewBox="0 0 500 500" className="w-full h-full">
+                  {classStudents.map((st, i) => {
+                    const totalSlices = classStudents.length;
+                    const sliceAngle = 360 / totalSlices;
+                    const startAngleRad = (i * sliceAngle - 90) * (Math.PI / 180);
+                    const endAngleRad = ((i + 1) * sliceAngle - 90) * (Math.PI / 180);
+                    const midAngleRad = (i * sliceAngle + sliceAngle / 2 - 90) * (Math.PI / 180);
 
-                  return (
-                    <React.Fragment key={st.id}>
-                      {/* Slice Background Polygon */}
-                      <div
-                        className="absolute w-1/2 h-1/2 top-0 right-0 origin-bottom-left border-l border-slate-900/30"
-                        style={{
-                          backgroundColor: bgColors[i % bgColors.length],
-                          transform: `rotate(${startAngle}deg)`,
-                          clipPath: 'polygon(0 100%, 100% 0, 100% 100%)',
-                        }}
-                      />
-                      {/* Centered Radial Text & Emoji Label */}
-                      <div
-                        className="absolute top-1/2 left-1/2 w-1/2 h-0 origin-left flex items-center justify-center pl-10 sm:pl-16 z-10 pointer-events-none"
-                        style={{
-                          transform: `rotate(${bisectorAngle - 90}deg)`,
-                        }}
-                      >
-                        <div className="flex items-center gap-1.5 font-black text-white text-xs sm:text-base drop-shadow-lg whitespace-nowrap">
-                          <span className="text-sm sm:text-xl">{st.avatar}</span>
-                          <span>{st.name.split(' ')[0]}</span>
-                        </div>
-                      </div>
-                    </React.Fragment>
-                  );
-                })}
+                    const x1 = 250 + 240 * Math.cos(startAngleRad);
+                    const y1 = 250 + 240 * Math.sin(startAngleRad);
+                    const x2 = 250 + 240 * Math.cos(endAngleRad);
+                    const y2 = 250 + 240 * Math.sin(endAngleRad);
+                    const largeArc = sliceAngle > 180 ? 1 : 0;
+                    const pathD = `M 250 250 L ${x1} ${y1} A 240 240 0 ${largeArc} 1 ${x2} ${y2} Z`;
+
+                    const bgColors = ['#10b981', '#06b6d4', '#8b5cf6', '#f59e0b', '#ec4899', '#3b82f6'];
+                    const sliceColor = bgColors[i % bgColors.length];
+
+                    const textRadius = 155;
+                    const textX = 250 + textRadius * Math.cos(midAngleRad);
+                    const textY = 250 + textRadius * Math.sin(midAngleRad);
+                    const textRotation = i * sliceAngle + sliceAngle / 2;
+
+                    return (
+                      <g key={st.id}>
+                        <path d={pathD} fill={sliceColor} stroke="#0f172a" strokeWidth="2.5" />
+                        <text
+                          x={textX}
+                          y={textY}
+                          fill="#ffffff"
+                          fontSize={totalSlices > 10 ? "14" : "18"}
+                          fontWeight="900"
+                          textAnchor="middle"
+                          dominantBaseline="central"
+                          transform={`rotate(${textRotation}, ${textX}, ${textY})`}
+                          className="select-none font-black drop-shadow-md"
+                        >
+                          {st.avatar} {st.name.split(' ')[0]}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
               </div>
 
-              {/* Center Spin Hub */}
+              {/* Center Spin Hub - Centered precisely */}
               <button
                 onClick={spinNameWheel}
                 disabled={isSpinning || classStudents.length === 0}
-                className="absolute z-10 w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 font-black text-sm sm:text-lg uppercase tracking-wider flex flex-col items-center justify-center shadow-2xl border-4 sm:border-8 border-slate-950 hover:scale-105 active:scale-95 transition-all disabled:opacity-75"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-emerald-500 via-teal-400 to-emerald-300 text-slate-950 font-black text-xs sm:text-base uppercase tracking-wider flex flex-col items-center justify-center shadow-2xl border-4 sm:border-8 border-slate-950 hover:scale-105 active:scale-95 transition-all disabled:opacity-75"
               >
-                <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-slate-950 ml-0.5" />
-                <span>SPIN</span>
+                <Play className="w-7 h-7 sm:w-10 sm:h-10 fill-slate-950 ml-0.5" />
+                <span>{isSpinning ? 'SPINNING' : 'SPIN'}</span>
               </button>
             </div>
           </div>

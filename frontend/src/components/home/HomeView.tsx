@@ -20,10 +20,12 @@ import {
   Volume2,
   Flag,
   Dice5,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export const HomeView: React.FC = () => {
-  const { setActiveTab, gamesCatalog, questionSets, launchGameWithSet } = useEduPlay();
+  const { setActiveTab, gamesCatalog, questionSets, launchGameWithSet, darkMode, toggleDarkMode } = useEduPlay();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const faqs = [
@@ -46,12 +48,33 @@ export const HomeView: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-8 lg:space-y-10">
-      <section className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-gradient-to-br from-slate-950 via-indigo-950 to-sky-900 text-white shadow-[0_25px_60px_-20px_rgba(15,23,42,0.7)]">
+      <section className="overflow-hidden rounded-[2rem] border border-slate-200/80 dark:border-slate-800 bg-gradient-to-br from-slate-950 via-indigo-950 to-sky-900 text-white shadow-[0_25px_60px_-20px_rgba(15,23,42,0.7)]">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="p-8 sm:p-10 lg:p-12">
-            <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-sky-200">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              Quiz Game Platform • Classroom Learning Experience
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-sky-200">
+                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                Quiz Game Platform • Classroom Learning Experience
+              </div>
+
+              {/* Clickable Dark Mode / Light Mode Toggle Button on Home Page */}
+              <button
+                onClick={toggleDarkMode}
+                className="flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-400/20 active:scale-95 transition-all shadow-sm"
+                title={darkMode ? 'Switch to Light Mode ☀️' : 'Switch to Dark Mode 🌙'}
+              >
+                {darkMode ? (
+                  <>
+                    <Sun className="h-4 w-4 text-amber-300 fill-amber-300 animate-spin-slow" />
+                    <span>Light Mode ☀️</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-4 w-4 text-amber-300 fill-amber-300" />
+                    <span>Dark Mode 🌙</span>
+                  </>
+                )}
+              </button>
             </div>
 
             <h1 className="mt-5 font-display text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
