@@ -43,6 +43,13 @@ import {
 } from '../data/mockData';
 import { toggleSound as setAudioSound, isSoundEnabled } from '../utils/soundEffects';
 
+export const STICKER_PRICES: Record<string, number> = {
+  Legendary: 2000,
+  Epic: 1500,
+  Rare: 1000,
+  Common: 500,
+};
+
 interface EduPlayContextType {
   // Navigation & View
   activeTab: ActiveTab;
@@ -81,6 +88,7 @@ interface EduPlayContextType {
   rewards: StudentRewards;
   stickersCatalog: Sticker[];
   redeemTicketForSticker: () => Sticker | null;
+  redeemSpecificSticker: (stickerId: string) => Sticker | null;
 
   // Roster & Class Tools
   classStudents: ClassStudent[];
@@ -93,6 +101,8 @@ interface EduPlayContextType {
   // Audio & Settings
   soundEnabled: boolean;
   toggleAudio: () => boolean;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
 
   // Pro Subscription Simulation
   isPro: boolean;
@@ -127,8 +137,26 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [currentUser, setCurrentUser] = useState<User>(DEFAULT_USER);
   const [isPro, setIsPro] = useState<boolean>(currentUser.isPro);
 
-  // Audio State
+  // Audio & Theme State
   const [soundEnabled, setSoundEnabled] = useState<boolean>(isSoundEnabled());
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('eduplay_theme');
+    return saved ? saved === 'dark' : false;
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('eduplay_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('eduplay_theme', 'light');
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => !prev);
+  };
 
   // Collections state initialized with rich mock data defaults
   const [gamesCatalog, setGamesCatalog] = useState<Game[]>(GAMES_CATALOG);
@@ -139,8 +167,8 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [classStudents, setClassStudents] = useState<ClassStudent[]>(MOCK_ROSTER);
   const [rewards, setRewards] = useState<StudentRewards>({
     studentId: 'u-student-1',
-    points: 450,
-    ticketsEarned: 2,
+    points: 4500,
+    ticketsEarned: 2500,
     unlockedStickerIds: ['stk-1', 'stk-2'],
   });
 
@@ -378,7 +406,7 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Rewards Actions
   const redeemTicketForSticker = (): Sticker | null => {
-    if (rewards.ticketsEarned <= 0) return null;
+    if (rewards.ticketsEarned < 500) return null;
 
     const lockedStickers = stickersCatalog.filter(
       (s) => !rewards.unlockedStickerIds.includes(s.id)
@@ -393,10 +421,13 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return null;
     }
 
-    const updatedUnlocked = Array.from(new Set([...rewards.unlockedStickerIds, stickerToUnlock.id]));
+    const price = STICKER_PRICES[stickerToUnlock.rarity] || 500;
+    if (rewards.ticketsEarned < price) return null;
+
+    const updatedUnlocked = [...rewards.unlockedStickerIds, stickerToUnlock.id];
     const updatedRewards: StudentRewards = {
       ...rewards,
-      ticketsEarned: Math.max(0, rewards.ticketsEarned - 1),
+      ticketsEarned: rewards.ticketsEarned - price,
       unlockedStickerIds: updatedUnlocked,
     };
 
@@ -406,6 +437,28 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
 
     return stickerToUnlock;
+  };
+
+  const redeemSpecificSticker = (stickerId: string): Sticker | null => {
+    const sticker = stickersCatalog.find((s) => s.id === stickerId);
+    if (!sticker) return null;
+
+    const price = STICKER_PRICES[sticker.rarity] || 500;
+    if (rewards.ticketsEarned < price) return null;
+
+    const updatedUnlocked = [...rewards.unlockedStickerIds, sticker.id];
+    const updatedRewards: StudentRewards = {
+      ...rewards,
+      ticketsEarned: rewards.ticketsEarned - price,
+      unlockedStickerIds: updatedUnlocked,
+    };
+
+    setRewards(updatedRewards);
+    updateStudentRewardsApi(rewards.studentId, updatedRewards).catch((err) =>
+      console.warn('Failed to update rewards on backend:', err)
+    );
+
+    return sticker;
   };
 
   // Roster Actions
@@ -547,6 +600,7 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
         rewards,
         stickersCatalog,
         redeemTicketForSticker,
+        redeemSpecificSticker,
         classStudents,
         addStudentToRoster,
         updateStudentInRoster,
@@ -555,6 +609,8 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateStudentPoints,
         soundEnabled,
         toggleAudio,
+        darkMode,
+        toggleDarkMode,
         isPro,
         toggleProStatus,
         launchGameWithSet,

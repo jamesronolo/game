@@ -28,10 +28,61 @@ body,
 body {
   min-width: 320px;
   background: linear-gradient(180deg, #f8fafc 0%, #eef4ff 100%);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
   min-height: 100vh;
+}
+
+/* Dark Mode Global Overrides */
+html.dark {
+  color-scheme: dark;
+  color: #f8fafc;
+  background-color: #090d16;
+}
+
+html.dark body {
+  background: linear-gradient(180deg, #090d16 0%, #0f172a 100%);
+  color: #f8fafc;
+}
+
+html.dark header {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  border-color: rgba(51, 65, 85, 0.8) !important;
+}
+
+html.dark .bg-white {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: rgba(51, 65, 85, 0.7) !important;
+}
+
+html.dark .bg-slate-50 {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: rgba(51, 65, 85, 0.7) !important;
+}
+
+html.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700 {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .border-slate-200,
+html.dark .border-slate-300 {
+  border-color: #334155 !important;
 }
 
 .font-display {

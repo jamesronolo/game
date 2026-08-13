@@ -14,6 +14,8 @@ import {
   ChevronDown,
   Sparkles,
   ClipboardList,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -24,6 +26,8 @@ export const Navbar: React.FC = () => {
     switchRole,
     soundEnabled,
     toggleAudio,
+    darkMode,
+    toggleDarkMode,
     isPro,
     rewards,
   } = useEduPlay();
@@ -40,7 +44,7 @@ export const Navbar: React.FC = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
@@ -53,7 +57,7 @@ export const Navbar: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-slate-900 via-indigo-900 to-sky-700 bg-clip-text text-transparent">
+                <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-slate-900 via-indigo-900 to-sky-700 dark:from-white dark:via-sky-200 dark:to-indigo-300 bg-clip-text text-transparent">
                   Quiz Game
                 </span>
                 {isPro && (
@@ -62,7 +66,7 @@ export const Navbar: React.FC = () => {
                   </span>
                 )}
               </div>
-              <p className="text-[10px] text-slate-500 font-medium tracking-wide">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-wide">
                 Interactive Learning Games
               </p>
             </div>
@@ -80,14 +84,14 @@ export const Navbar: React.FC = () => {
                   onClick={() => setActiveTab(item.id as any)}
                   className={`relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                     isActive
-                      ? 'bg-sky-50 text-sky-700 font-semibold shadow-2xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                      ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 font-semibold shadow-2xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-sky-600 dark:text-sky-400' : 'text-slate-400'}`} />
                   <span>{item.label}</span>
                   {item.badge && (
-                    <span className="ml-0.5 px-1.5 py-0.2 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full">
+                    <span className="ml-0.5 px-1.5 py-0.2 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 text-[10px] font-bold rounded-full">
                       {item.badge}
                     </span>
                   )}
@@ -106,14 +110,27 @@ export const Navbar: React.FC = () => {
 
           {/* Right Controls & Role Switcher */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Clickable Dark Mode / Light Mode Toggle Button */}
+            <button
+              onClick={toggleDarkMode}
+              title={darkMode ? 'Switch to Light Mode ☀️' : 'Switch to Dark Mode 🌙'}
+              className="p-2 rounded-xl text-amber-500 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-2xs"
+            >
+              {darkMode ? (
+                <Sun className="w-5 h-5 fill-amber-400 text-amber-400 animate-spin-slow" />
+              ) : (
+                <Moon className="w-5 h-5 fill-slate-700 text-slate-700" />
+              )}
+            </button>
+
             {/* Audio Toggle */}
             <button
               onClick={toggleAudio}
               title={soundEnabled ? 'Mute Sound Effects' : 'Enable Sound Effects'}
-              className="p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+              className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-700"
             >
               {soundEnabled ? (
-                <Volume2 className="w-5 h-5 text-sky-600" />
+                <Volume2 className="w-5 h-5 text-sky-600 dark:text-sky-400" />
               ) : (
                 <VolumeX className="w-5 h-5 text-slate-400" />
               )}
