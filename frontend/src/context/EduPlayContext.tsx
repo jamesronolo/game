@@ -32,15 +32,7 @@ import {
   fetchStudentRewards,
   updateStudentRewardsApi,
 } from '../services/api';
-import {
-  GAMES_CATALOG,
-  MOCK_QUESTION_SETS,
-  MOCK_ASSIGNMENTS,
-  MOCK_ATTEMPTS,
-  MOCK_STICKERS,
-  MOCK_ROSTER,
-  GAME_IMAGE_MAP,
-} from '../data/mockData';
+import { GAME_IMAGE_MAP } from '../assets/gameImages';
 import { toggleSound as setAudioSound, isSoundEnabled } from '../utils/soundEffects';
 
 export const STICKER_PRICES: Record<string, number> = {
@@ -158,21 +150,21 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setDarkMode((prev) => !prev);
   };
 
-  // Collections state initialized with rich mock data defaults
-  const [gamesCatalog, setGamesCatalog] = useState<Game[]>(GAMES_CATALOG);
-  const [questionSets, setQuestionSets] = useState<QuestionSet[]>(MOCK_QUESTION_SETS);
-  const [assignments, setAssignments] = useState<Assignment[]>(MOCK_ASSIGNMENTS);
-  const [attempts, setAttempts] = useState<Attempt[]>(MOCK_ATTEMPTS);
-  const [stickersCatalog, setStickersCatalog] = useState<Sticker[]>(MOCK_STICKERS);
-  const [classStudents, setClassStudents] = useState<ClassStudent[]>(MOCK_ROSTER);
+  // Dynamic Collections state initialized cleanly
+  const [gamesCatalog, setGamesCatalog] = useState<Game[]>([]);
+  const [questionSets, setQuestionSets] = useState<QuestionSet[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [stickersCatalog, setStickersCatalog] = useState<Sticker[]>([]);
+  const [classStudents, setClassStudents] = useState<ClassStudent[]>([]);
   const [rewards, setRewards] = useState<StudentRewards>({
     studentId: 'u-student-1',
-    points: 4500,
-    ticketsEarned: 2500,
+    points: 450,
+    ticketsEarned: 2,
     unlockedStickerIds: ['stk-1', 'stk-2'],
   });
 
-  // Initial backend data load
+  // Dynamic backend data load from API endpoints
   useEffect(() => {
     async function loadBackendData() {
       try {
@@ -197,66 +189,61 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
           );
         }
       } catch (err) {
-        console.warn('Backend games load error (using mock fallback):', err);
+        console.warn('Backend games load error:', err);
       }
 
       try {
         const sets = await fetchQuestionSets();
         if (sets && sets.length > 0) {
-          // Merge backend sets with MOCK_QUESTION_SETS: if a backend set has no questions,
-          // use the questions from the matching mock set as a fallback
-          const merged = sets.map((backendSet) => {
-            const mockMatch = MOCK_QUESTION_SETS.find((m) => m.id === backendSet.id);
-            if (mockMatch && mockMatch.questions.length > (backendSet.questions?.length || 0)) {
-              return { ...backendSet, questions: mockMatch.questions };
-            }
-            const hasQuestions = Array.isArray(backendSet.questions) && backendSet.questions.length > 0;
-            if (hasQuestions) return backendSet;
-            return mockMatch ? { ...backendSet, questions: mockMatch.questions } : backendSet;
-          });
-          // Also include any mock sets not yet in the backend (qs-6, qs-7, qs-8 may not be seeded yet)
-          MOCK_QUESTION_SETS.forEach((mockSet) => {
-            if (!merged.find((s) => s.id === mockSet.id)) merged.push(mockSet);
-          });
-          setQuestionSets(merged);
+          setQuestionSets(sets);
         }
       } catch (err) {
-        console.warn('Backend question sets load error (using mock fallback):', err);
+        console.warn('Backend question sets load error:', err);
       }
 
       try {
         const asgs = await fetchAssignments();
-        if (asgs && asgs.length > 0) setAssignments(asgs);
+        if (asgs && asgs.length > 0) {
+          setAssignments(asgs);
+        }
       } catch (err) {
-        console.warn('Backend assignments load error (using mock fallback):', err);
+        console.warn('Backend assignments load error:', err);
       }
 
       try {
         const atts = await fetchAttempts();
-        if (atts && atts.length > 0) setAttempts(atts);
+        if (atts && atts.length > 0) {
+          setAttempts(atts);
+        }
       } catch (err) {
-        console.warn('Backend attempts load error (using mock fallback):', err);
+        console.warn('Backend attempts load error:', err);
       }
 
       try {
         const stickers = await fetchStickersCatalog();
-        if (stickers && stickers.length > 0) setStickersCatalog(stickers);
+        if (stickers && stickers.length > 0) {
+          setStickersCatalog(stickers);
+        }
       } catch (err) {
-        console.warn('Backend stickers load error (using mock fallback):', err);
+        console.warn('Backend stickers load error:', err);
       }
 
       try {
         const roster = await fetchClassRoster();
-        if (roster && roster.length > 0) setClassStudents(roster);
+        if (roster && roster.length > 0) {
+          setClassStudents(roster);
+        }
       } catch (err) {
-        console.warn('Backend roster load error (using mock fallback):', err);
+        console.warn('Backend roster load error:', err);
       }
 
       try {
         const rws = await fetchStudentRewards('u-student-1');
-        if (rws) setRewards(rws);
+        if (rws) {
+          setRewards(rws);
+        }
       } catch (_err) {
-        // Rewards row may not exist yet in DB — silently use mock default
+        // Rewards will be dynamically initialized upon gameplay/save
       }
     }
 
