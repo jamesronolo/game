@@ -1,4 +1,4 @@
-wimport { Game, QuestionSet, User, Assignment, Sticker, Attempt, ClassStudent } from '../types';
+import { Game, QuestionSet, User, Assignment, Sticker, Attempt, ClassStudent } from '../types';
 
 import wheelSpinImg from '../assets/images/wheel_spin_game_1785564142771.jpg';
 import shipBattleImg from '../assets/images/ship_battle_game_1785564155376.jpg';
