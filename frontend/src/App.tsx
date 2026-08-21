@@ -13,6 +13,7 @@ import { RewardsView } from './components/rewards/RewardsView';
 import { ProUpgradeView } from './components/pro-upgrade/ProUpgradeView';
 import { MultiplayerLobby } from './components/multiplayer/MultiplayerLobby';
 import { HostLobbyView } from './components/multiplayer/HostLobbyView';
+import { CodingQuizView } from './components/coding-quiz/CodingQuizView';
 
 const MainContent: React.FC = () => {
   const {
@@ -51,6 +52,7 @@ const MainContent: React.FC = () => {
         {activeTab === 'pro-upgrade' && <ProUpgradeView />}
         {activeTab === 'multiplayer-join' && <MultiplayerLobby />}
         {activeTab === 'host-lobby' && <HostLobbyView />}
+        {activeTab === 'coding-quiz' && <CodingQuizView />}
       </main>
 
       {/* Footer */}

@@ -151,4 +151,47 @@ export type ActiveTab =
   | 'rewards'
   | 'pro-upgrade'
   | 'multiplayer-join'
-  | 'host-lobby';
+  | 'host-lobby'
+  | 'coding-quiz';
+
+// ---- Programming Quiz ----
+export interface ProgrammingQuizQuestion {
+  id: string;
+  number: number;
+  question: string;
+  options: string[]; // 4 options [A, B, C, D]
+}
+
+export interface ProgrammingQuizAnswerResult {
+  questionId: string;
+  number: number;
+  question: string;
+  selectedOption: string; // 'A' | 'B' | 'C' | 'D'
+  correctOption: string;
+  correctAnswer: string;
+  explanation: string;
+  isCorrect: boolean;
+  points?: number;
+}
+
+export interface ProgrammingQuizSubmitResponse {
+  success: boolean;
+  id: string;
+  score: number;
+  accuracy: number;
+  totalQuestions: number;
+  correctCount: number;
+  completedAt: string;
+  graded: ProgrammingQuizAnswerResult[];
+}
+
+export interface ProgrammingQuizAttempt {
+  id: string;
+  studentName: string;
+  score: number;
+  accuracy: number;
+  totalQuestions: number;
+  correctCount: number;
+  completedAt: string;
+  answers: ProgrammingQuizAnswerResult[];
+}

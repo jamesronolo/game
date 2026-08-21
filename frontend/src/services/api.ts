@@ -1,4 +1,4 @@
-import { User, Game, QuestionSet, Assignment, Attempt, Sticker, ClassStudent, StudentRewards } from '../types';
+import { User, Game, QuestionSet, Assignment, Attempt, Sticker, ClassStudent, StudentRewards, ProgrammingQuizQuestion, ProgrammingQuizSubmitResponse, ProgrammingQuizAttempt } from '../types';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -138,4 +138,23 @@ export async function generateAiQuestionSet(payload: { topic: string; gradeLevel
     method: 'POST',
     body: JSON.stringify(payload),
   });
+}
+
+// Programming Quiz
+export async function fetchProgrammingQuizQuestions(): Promise<ProgrammingQuizQuestion[]> {
+  return fetchJson<ProgrammingQuizQuestion[]>('/programming-quiz/questions');
+}
+
+export async function submitProgrammingQuiz(payload: {
+  answers: { questionId: string; selectedOption: string }[];
+  studentName?: string;
+}): Promise<ProgrammingQuizSubmitResponse> {
+  return fetchJson<ProgrammingQuizSubmitResponse>('/programming-quiz/submit', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function fetchProgrammingQuizAttempts(): Promise<ProgrammingQuizAttempt[]> {
+  return fetchJson<ProgrammingQuizAttempt[]>('/programming-quiz/attempts');
 }

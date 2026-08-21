@@ -22,6 +22,7 @@ import {
   Dice5,
   Sun,
   Moon,
+  Code2,
 } from 'lucide-react';
 
 export const HomeView: React.FC = () => {
@@ -87,22 +88,29 @@ export const HomeView: React.FC = () => {
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <button
+                onClick={() => setActiveTab('coding-quiz')}
+                className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 cursor-pointer"
+              >
+                <Code2 className="h-4 w-4 text-yellow-300" />
+                Programming Test (25 Qs)
+              </button>
+              <button
                 onClick={() => setActiveTab('games')}
-                className="flex items-center gap-2 rounded-2xl bg-sky-500 px-5 py-3 text-sm font-black text-slate-950 shadow-lg shadow-sky-500/25 transition hover:bg-sky-400"
+                className="flex items-center gap-2 rounded-2xl bg-sky-500 px-5 py-3 text-sm font-black text-slate-950 shadow-lg shadow-sky-500/25 transition hover:bg-sky-400 cursor-pointer"
               >
                 <Gamepad2 className="h-4 w-4" />
                 Explore Games
               </button>
               <button
                 onClick={() => setActiveTab('sets')}
-                className="flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
+                className="flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20 cursor-pointer"
               >
                 <BookOpen className="h-4 w-4" />
                 Browse Question Sets
               </button>
               <button
                 onClick={() => setActiveTab('teacher-tools')}
-                className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500"
+                className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 cursor-pointer"
               >
                 <Wrench className="h-4 w-4" />
                 Free Teacher Tools
