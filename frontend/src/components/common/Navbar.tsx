@@ -16,6 +16,7 @@ import {
   ClipboardList,
   Sun,
   Moon,
+  Code2,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -36,6 +37,7 @@ export const Navbar: React.FC = () => {
 
   const navItems = [
     { id: 'games', label: 'Games Library', icon: Gamepad2 },
+    { id: 'coding-quiz', label: 'Programming Test', icon: Code2, badge: 'New' },
     { id: 'sets', label: 'Question Sets', icon: BookOpen },
     { id: 'teacher-tools', label: 'Free Teacher Tools', icon: Wrench, badge: 'Free' },
     { id: 'assignments', label: 'Assignments', icon: ClipboardList, roleRequired: 'teacher' },

@@ -86,7 +86,36 @@ export const WheelSpinGame: React.FC<WheelSpinGameProps> = ({
       {/* Wheel Stage - Responsive & Centered Container */}
       <div className="relative w-full max-w-[320px] sm:max-w-[460px] md:max-w-[500px] aspect-square my-4 flex items-center justify-center">
         {/* Top Pointer Needle - Centered precisely */}
-        <div className="absolute -top-4 sm:-top-6 left-1/2 -translate-x-1/2 z-30 w-0 h-0 border-l-[18px] sm:border-l-[24px] border-l-transparent border-r-[18px] sm:border-r-[24px] border-r-transparent border-t-[32px] sm:border-t-[44px] border-t-amber-400 drop-shadow-2xl" />
+        <div className="absolute -top-6 sm:-top-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex items-center justify-center filter drop-shadow-[0_12px_16px_rgba(0,0,0,0.6)]">
+          <svg
+            viewBox="0 0 60 80"
+            className={`w-12 sm:w-16 h-16 sm:h-20 transition-transform duration-200 ${
+              isSpinning ? 'scale-105 animate-pulse' : ''
+            }`}
+          >
+            <defs>
+              <linearGradient id="gamePointerGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#fef08a" />
+                <stop offset="50%" stopColor="#f59e0b" />
+                <stop offset="100%" stopColor="#b45309" />
+              </linearGradient>
+              <linearGradient id="gamePointerRuby" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#f43f5e" />
+                <stop offset="100%" stopColor="#be123c" />
+              </linearGradient>
+            </defs>
+            <polygon
+              points="12,25 30,76 48,25"
+              fill="url(#gamePointerGold)"
+              stroke="#78350f"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            <circle cx="30" cy="22" r="18" fill="url(#gamePointerGold)" stroke="#78350f" strokeWidth="2.5" />
+            <circle cx="30" cy="22" r="11" fill="url(#gamePointerRuby)" stroke="#ffffff" strokeWidth="1.5" />
+            <circle cx="27" cy="19" r="3.5" fill="#ffffff" fillOpacity="0.7" />
+          </svg>
+        </div>
 
         {/* Outer Wheel Container */}
         <div className="w-full h-full rounded-full border-8 sm:border-[12px] border-slate-800 bg-slate-900 shadow-2xl relative overflow-hidden flex items-center justify-center">
