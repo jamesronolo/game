@@ -70,8 +70,8 @@ const MainContent: React.FC = () => {
             <button onClick={() => setActiveTab('games')} className="hover:underline">
               8 Games Catalog
             </button>
-            <button onClick={() => setActiveTab('pro-upgrade')} className="hover:underline">
-              Pro Pass Model
+            <button onClick={() => setActiveTab('progress')} className="hover:underline">
+              Gradebook Analytics
             </button>
           </div>
         </div>
