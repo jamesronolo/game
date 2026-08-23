@@ -157,15 +157,6 @@ export const Navbar: React.FC = () => {
               </button>
             )}
 
-            {/* Pro Status Upgrade Button */}
-            <button
-              onClick={() => setActiveTab('pro-upgrade')}
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs hover:brightness-105 transition-all"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-200" />
-              <span>{isPro ? 'Pro Account' : 'Upgrade Pro Pass'}</span>
-            </button>
-
             {/* Role Switcher Menu */}
             <div className="relative">
               <button

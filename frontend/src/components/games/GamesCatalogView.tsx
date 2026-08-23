@@ -48,10 +48,6 @@ export const GamesCatalogView: React.FC = () => {
   });
 
   const handleStartPlay = (game: Game) => {
-    if (game.isProOnly && !isPro) {
-      setActiveTab('pro-upgrade');
-      return;
-    }
     if (!selectedSetId && questionSets.length > 0) {
       setSelectedSetId(questionSets[0].id);
     }
@@ -148,15 +144,9 @@ export const GamesCatalogView: React.FC = () => {
                   <span className="px-2.5 py-1 bg-slate-900/70 backdrop-blur-md border border-white/20 rounded-full text-[10px] font-black text-white uppercase tracking-wider shadow-xs">
                     {game.badge}
                   </span>
-                  {game.isProOnly && !isPro ? (
-                    <span className="p-1.5 bg-amber-500 text-slate-950 rounded-full shadow-md">
-                      <Lock className="w-3.5 h-3.5" />
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-bold text-white bg-slate-900/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/20">
-                      {game.minGrade}
-                    </span>
-                  )}
+                  <span className="text-[10px] font-bold text-white bg-slate-900/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/20">
+                    {game.minGrade}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between z-10">

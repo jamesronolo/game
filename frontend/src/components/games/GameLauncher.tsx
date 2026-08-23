@@ -61,6 +61,15 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
 
   const questions = questionSet.questions || [];
   const currentQuestion = questions[currentQuestionIndex];
+  const advanceTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Helper to check if an option matches the target answer
+  const isOptionCorrect = (opt: string, targetAnswer: string) => {
+    if (!opt || !targetAnswer) return false;
+    const normOpt = opt.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const normTarget = targetAnswer.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return normOpt === normTarget || opt.trim().toUpperCase() === targetAnswer.trim().toUpperCase();
+  };
 
   // Elapsed timer
   useEffect(() => {
@@ -71,24 +80,54 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
     return () => clearInterval(interval);
   }, [isGameOver]);
 
+  // Clean up advance timer on unmount
+  useEffect(() => {
+    return () => {
+      if (advanceTimerRef.current) {
+        clearTimeout(advanceTimerRef.current);
+      }
+    };
+  }, []);
+
   // Trigger question modal when game mechanic requests a question check
   const handleTriggerQuestion = () => {
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
     setSelectedOption(null);
     setFeedback(null);
     setShowHint(false);
     setIsQuestionModalOpen(true);
   };
 
+  // Advance to next question or complete game
+  const advanceToNextQuestion = () => {
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
+    setIsQuestionModalOpen(false);
+    setFeedback(null);
+    setSelectedOption(null);
+
+    if (currentQuestionIndex + 1 < questions.length) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+    } else {
+      finishGame();
+    }
+  };
+
   // Process Answer submitted in modal or directly by game
   const handleAnswerSubmit = (studentAnswer: string) => {
     if (!currentQuestion) return;
 
-    const normStudent = studentAnswer.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const normTarget = currentQuestion.answer.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
 
-    const isCorrect =
-      normStudent === normTarget ||
-      studentAnswer.trim().toUpperCase() === currentQuestion.answer.trim().toUpperCase();
+    const isCorrect = isOptionCorrect(studentAnswer, currentQuestion.answer);
 
     if (isCorrect) {
       playCorrectSound();
@@ -112,18 +151,11 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
     };
     setAnswersHistory((prev) => [...prev, record]);
 
-    // Delay to show feedback before closing modal & advancing
-    setTimeout(() => {
-      setIsQuestionModalOpen(false);
-      setFeedback(null);
-
-      if (currentQuestionIndex + 1 < questions.length) {
-        setCurrentQuestionIndex((prev) => prev + 1);
-      } else {
-        // All questions completed!
-        finishGame();
-      }
-    }, 1200);
+    // For correct answers, advance after 1.2s; for incorrect answers (auto-correcting), give 3.2s
+    const advanceDelay = isCorrect ? 1200 : 3400;
+    advanceTimerRef.current = setTimeout(() => {
+      advanceToNextQuestion();
+    }, advanceDelay);
   };
 
   const finishGame = () => {
@@ -432,13 +464,44 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 {currentQuestion.options.map((opt, idx) => {
                   const isSelected = selectedOption === opt;
-                  let btnStyle = 'bg-slate-800/90 border-slate-700/80 text-slate-100 hover:bg-slate-750 hover:border-sky-500/50';
+                  const isThisCorrect = isOptionCorrect(opt, currentQuestion.answer);
 
-                  if (feedback && isSelected) {
-                    btnStyle =
-                      feedback === 'correct'
-                        ? 'bg-emerald-600 border-emerald-400 text-white font-black ring-4 ring-emerald-500/30 scale-[1.02]'
-                        : 'bg-rose-600 border-rose-400 text-white font-black ring-4 ring-rose-500/30 scale-[1.02]';
+                  let btnStyle =
+                    'bg-slate-800/90 border-slate-700/80 text-slate-100 hover:bg-slate-750 hover:border-sky-500/50';
+                  let badge = null;
+
+                  if (feedback) {
+                    if (isSelected && feedback === 'correct') {
+                      btnStyle =
+                        'bg-emerald-600 border-emerald-400 text-white font-black ring-4 ring-emerald-500/30 scale-[1.02] shadow-lg shadow-emerald-500/20';
+                      badge = (
+                        <span className="flex items-center gap-1 text-xs bg-emerald-800 text-emerald-100 px-2.5 py-1 rounded-lg font-extrabold ml-2 shrink-0">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                          Correct
+                        </span>
+                      );
+                    } else if (isSelected && feedback === 'wrong') {
+                      btnStyle =
+                        'bg-rose-950/95 border-2 border-rose-500 text-rose-200 font-bold ring-4 ring-rose-500/30 line-through decoration-rose-400 decoration-2';
+                      badge = (
+                        <span className="flex items-center gap-1 text-xs bg-rose-900/90 border border-rose-600 px-2.5 py-1 rounded-lg text-rose-200 font-bold ml-2 shrink-0 not-italic no-underline">
+                          <XCircle className="w-4 h-4 text-rose-400" />
+                          Your Pick (Wrong)
+                        </span>
+                      );
+                    } else if (feedback === 'wrong' && isThisCorrect) {
+                      // AUTO-CORRECT HIGHLIGHT FOR THE RIGHT OPTION
+                      btnStyle =
+                        'bg-emerald-600/95 border-2 border-emerald-300 text-white font-black ring-4 ring-emerald-400/50 scale-[1.03] shadow-xl shadow-emerald-500/30 animate-pulse';
+                      badge = (
+                        <span className="flex items-center gap-1 text-xs bg-emerald-800 text-emerald-100 border border-emerald-300 px-3 py-1 rounded-lg font-black ml-2 shrink-0 shadow-sm animate-bounce">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                          ✨ Auto-Corrected
+                        </span>
+                      );
+                    } else {
+                      btnStyle = 'bg-slate-900/50 border-slate-800 text-slate-500 opacity-40';
+                    }
                   }
 
                   return (
@@ -452,13 +515,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
                       className={`p-5 sm:p-6 rounded-2xl border-2 text-left text-base sm:text-lg font-bold transition-all duration-150 flex items-center justify-between shadow-md ${btnStyle}`}
                     >
                       <span className="leading-snug">{opt}</span>
-                      {feedback && isSelected && (
-                        feedback === 'correct' ? (
-                          <CheckCircle2 className="w-6 h-6 text-white shrink-0 ml-2" />
-                        ) : (
-                          <XCircle className="w-6 h-6 text-white shrink-0 ml-2" />
-                        )
-                      )}
+                      {badge}
                     </button>
                   );
                 })}
@@ -476,9 +533,16 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
                   <input
                     type="text"
                     value={selectedOption || ''}
+                    disabled={feedback !== null}
                     onChange={(e) => setSelectedOption(e.target.value)}
                     placeholder="Type your answer here..."
-                    className="w-full bg-slate-950 border-2 border-slate-700 rounded-2xl px-5 py-4 text-lg font-bold text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 shadow-inner"
+                    className={`w-full bg-slate-950 border-2 rounded-2xl px-5 py-4 text-lg font-bold placeholder-slate-500 focus:outline-none shadow-inner ${
+                      feedback === 'wrong'
+                        ? 'border-rose-500 text-rose-300 line-through'
+                        : feedback === 'correct'
+                        ? 'border-emerald-500 text-emerald-300'
+                        : 'border-slate-700 text-white focus:border-sky-500'
+                    }`}
                   />
                   <button
                     type="submit"
@@ -491,25 +555,62 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
               </div>
             )}
 
-            {/* Instant Feedback Notice */}
-            {feedback && (
-              <div
-                className={`p-4 sm:p-5 rounded-2xl font-black text-center text-base sm:text-lg flex items-center justify-center gap-3 animate-in fade-in zoom-in-95 shadow-lg ${
-                  feedback === 'correct'
-                    ? 'bg-emerald-950 text-emerald-200 border-2 border-emerald-600'
-                    : 'bg-rose-950 text-rose-200 border-2 border-rose-600'
-                }`}
-              >
-                {feedback === 'correct' ? (
-                  <>
-                    <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
-                    <span>Brilliant! Correct Answer (+100 pts)</span>
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="w-6 h-6 text-rose-400 shrink-0" />
-                    <span>Nice try! Correct was: {currentQuestion.answer}</span>
-                  </>
+            {/* Feedback & Auto-Correction Panel */}
+            {feedback === 'correct' && (
+              <div className="p-4 sm:p-5 rounded-2xl font-black text-center text-base sm:text-lg flex items-center justify-center gap-3 animate-in fade-in zoom-in-95 shadow-lg bg-emerald-950 text-emerald-200 border-2 border-emerald-600">
+                <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
+                <span>Brilliant! Correct Answer (+100 pts)</span>
+              </div>
+            )}
+
+            {feedback === 'wrong' && (
+              <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-rose-950/90 via-slate-900 to-emerald-950/90 border-2 border-amber-500/70 shadow-2xl animate-in zoom-in-95 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-rose-400 font-extrabold text-base sm:text-lg">
+                    <XCircle className="w-6 h-6 shrink-0" />
+                    <span>Incorrect Selection</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full border border-amber-500/40 font-black uppercase tracking-wider animate-pulse">
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <span>Auto-Correct Active</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/90 p-4 rounded-xl border border-slate-800 shadow-inner">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider text-slate-400 font-bold mb-1">
+                      The Correct Answer is:
+                    </p>
+                    <p className="text-xl sm:text-2xl font-black text-emerald-400 flex items-center gap-2">
+                      <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
+                      <span>{currentQuestion.answer}</span>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => speakText(`The correct answer is: ${currentQuestion.answer}`)}
+                      className="flex items-center gap-1.5 text-xs font-bold text-sky-300 bg-sky-950/90 hover:bg-sky-900 border border-sky-800 px-3.5 py-2.5 rounded-xl transition-colors shadow-sm"
+                      title="Read correct answer aloud"
+                    >
+                      <Volume2 className="w-4 h-4 text-sky-400" />
+                      <span>Listen</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={advanceToNextQuestion}
+                      className="flex items-center gap-1.5 text-xs sm:text-sm font-black text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 px-4 py-2.5 rounded-xl transition-all shadow-lg active:scale-95"
+                    >
+                      <span>Continue</span>
+                      <ArrowLeft className="w-4 h-4 rotate-180" />
+                    </button>
+                  </div>
+                </div>
+
+                {currentQuestion.hint && (
+                  <p className="text-xs sm:text-sm text-amber-200/90 bg-amber-950/40 p-3 rounded-xl border border-amber-900/50 leading-relaxed">
+                    💡 <span className="font-bold text-amber-300">Explanation / Note:</span> {currentQuestion.hint}
+                  </p>
                 )}
               </div>
             )}
