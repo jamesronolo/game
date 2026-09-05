@@ -48,15 +48,8 @@ export const MOCK_USERS: User[] = [
     avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
     className: 'Grade 3 - Room 2B',
   },
-  {
-    id: 'u-parent-1',
-    name: 'David Martinez',
-    email: 'david.martinez@gmail.com',
-    role: 'parent',
-    isPro: false,
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-  },
 ];
+
 
 export const GAMES_CATALOG: Game[] = [
   {
