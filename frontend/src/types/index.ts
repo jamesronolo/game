@@ -1,4 +1,4 @@
-export type UserRole = 'teacher' | 'student' | 'parent' | 'admin' | 'guest';
+export type UserRole = 'teacher' | 'student' | 'admin' | 'guest';
 
 export interface User {
   id: string;
@@ -152,7 +152,8 @@ export type ActiveTab =
   | 'pro-upgrade'
   | 'multiplayer-join'
   | 'host-lobby'
-  | 'coding-quiz';
+  | 'coding-quiz'
+  | 'school-records';
 
 // ---- Programming Quiz ----
 export interface ProgrammingQuizQuestion {
@@ -194,4 +195,17 @@ export interface ProgrammingQuizAttempt {
   correctCount: number;
   completedAt: string;
   answers: ProgrammingQuizAnswerResult[];
+}
+
+// ---- School Grade Records ----
+export interface StudentGrade {
+  id: string;
+  studentId: string;
+  studentName: string;
+  subject: string;
+  gradeValue: string; // e.g. 'A+', 'B', '95', etc.
+  term: string;       // e.g. '1st Quarter', 'Semester 1'
+  notes?: string;
+  recordedBy: string;
+  createdAt: string;
 }

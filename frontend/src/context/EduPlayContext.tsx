@@ -11,6 +11,7 @@ import {
   StudentRewards,
   ClassStudent,
   GameSlug,
+  StudentGrade,
 } from '../types';
 import {
   fetchUsers,
@@ -31,6 +32,10 @@ import {
   deleteAssignmentApi,
   fetchStudentRewards,
   updateStudentRewardsApi,
+  fetchGradesApi,
+  createGradeApi,
+  updateGradeApi,
+  deleteGradeApi,
 } from '../services/api';
 import { GAME_IMAGE_MAP } from '../assets/gameImages';
 import { toggleSound as setAudioSound, isSoundEnabled } from '../utils/soundEffects';
@@ -56,7 +61,7 @@ interface EduPlayContextType {
   setEditingSetId: (id: string | null) => void;
 
   // User & Role State
-  currentUser: User;
+  currentUser: User | null;
   setCurrentUser: (user: User) => void;
   usersList: User[];
   switchRole: (role: UserRole) => void;
@@ -90,6 +95,12 @@ interface EduPlayContextType {
   updateStudentStars: (studentId: string, delta: number) => Promise<void>;
   updateStudentPoints: (studentId: string, delta: number) => Promise<void>;
 
+  // School Records / Grades
+  grades: StudentGrade[];
+  addGrade: (grade: Omit<StudentGrade, 'id' | 'createdAt'>) => Promise<void>;
+  editGrade: (id: string, grade: Partial<StudentGrade>) => Promise<void>;
+  removeGrade: (id: string) => Promise<void>;
+
   // Audio & Settings
   soundEnabled: boolean;
   toggleAudio: () => boolean;
@@ -107,14 +118,21 @@ interface EduPlayContextType {
 
 const EduPlayContext = createContext<EduPlayContextType | undefined>(undefined);
 
-const DEFAULT_USER: User = {
-  id: 'u-teacher-1',
-  name: 'Mrs. Sarah Davis',
-  email: 'davis@elementary.edu',
+// No hardcoded default user — derived dynamically from API
+const GUEST_STUDENT: User = {
+  id: 'u-student-guest',
+  name: 'Student',
+  email: 'student@eduplay.org',
+  role: 'student',
+  isPro: false,
+};
+
+const GUEST_TEACHER: User = {
+  id: 'u-teacher-guest',
+  name: 'Teacher',
+  email: 'teacher@eduplay.org',
   role: 'teacher',
   isPro: true,
-  avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-  className: 'Grade 3 - Room 2B',
 };
 
 export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -124,10 +142,16 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [activeAssignment, setActiveAssignment] = useState<Assignment | null>(null);
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
 
-  // Users state
-  const [usersList, setUsersList] = useState<User[]>([DEFAULT_USER]);
-  const [currentUser, setCurrentUser] = useState<User>(DEFAULT_USER);
-  const [isPro, setIsPro] = useState<boolean>(currentUser.isPro);
+  // Users state — default to student view until logged in
+  const [usersList, setUsersList] = useState<User[]>([GUEST_STUDENT, GUEST_TEACHER]);
+  const [currentUser, setCurrentUser] = useState<User>(() => {
+    const savedRole = localStorage.getItem('eduplay_role');
+    return savedRole === 'teacher' ? GUEST_TEACHER : GUEST_STUDENT;
+  });
+  const [isPro, setIsPro] = useState<boolean>(() => {
+    const savedRole = localStorage.getItem('eduplay_role');
+    return savedRole === 'teacher';
+  });
 
   // Audio & Theme State
   const [soundEnabled, setSoundEnabled] = useState<boolean>(isSoundEnabled());
@@ -157,11 +181,12 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [stickersCatalog, setStickersCatalog] = useState<Sticker[]>([]);
   const [classStudents, setClassStudents] = useState<ClassStudent[]>([]);
+  const [grades, setGrades] = useState<StudentGrade[]>([]);
   const [rewards, setRewards] = useState<StudentRewards>({
-    studentId: 'u-student-1',
-    points: 450,
-    ticketsEarned: 2,
-    unlockedStickerIds: ['stk-1', 'stk-2'],
+    studentId: '',
+    points: 0,
+    ticketsEarned: 0,
+    unlockedStickerIds: [],
   });
 
   // Dynamic backend data load from API endpoints
@@ -238,29 +263,40 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       try {
-        const rws = await fetchStudentRewards('u-student-1');
+        const rws = await fetchStudentRewards(currentUser.id);
         if (rws) {
           setRewards(rws);
         }
       } catch (_err) {
         // Rewards will be dynamically initialized upon gameplay/save
       }
+
+      try {
+        const allGrades = await fetchGradesApi();
+        setGrades(allGrades);
+      } catch (err) {
+        console.warn('Backend grades load error:', err);
+      }
     }
 
     loadBackendData();
   }, []);
 
-  // Role switching
+  // Role switching — teacher and student only
   const switchRole = (role: UserRole) => {
     const targetUser = usersList.find((u) => u.role === role) || {
       id: `u-${role}-guest`,
-      name: role === 'teacher' ? 'Teacher Guest' : role === 'student' ? 'Student Guest' : 'Parent Guest',
+      name: role === 'teacher' ? 'Teacher' : 'Student',
       email: `${role}@eduplay.org`,
       role: role,
       isPro: role === 'teacher',
     };
     setCurrentUser(targetUser);
     setIsPro(targetUser.isPro);
+    localStorage.setItem('eduplay_role', role);
+    if (role === 'student' && ['school-records', 'assignments', 'teacher-tools'].includes(activeTab)) {
+      setActiveTab('games');
+    }
   };
 
   const toggleProStatus = async () => {
@@ -533,6 +569,46 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // Grade Record Actions
+  const addGrade = async (gradeData: Omit<StudentGrade, 'id' | 'createdAt'>) => {
+    try {
+      const result = await createGradeApi(gradeData);
+      const newGrade: StudentGrade = {
+        ...gradeData,
+        id: result.id,
+        createdAt: result.createdAt,
+      };
+      setGrades((prev) => [newGrade, ...prev]);
+    } catch (err) {
+      console.warn('Failed to add grade record:', err);
+      // Optimistic fallback
+      const fallback: StudentGrade = {
+        ...gradeData,
+        id: `gr-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      setGrades((prev) => [fallback, ...prev]);
+    }
+  };
+
+  const editGrade = async (id: string, updates: Partial<StudentGrade>) => {
+    setGrades((prev) => prev.map((g) => (g.id === id ? { ...g, ...updates } : g)));
+    try {
+      await updateGradeApi(id, updates);
+    } catch (err) {
+      console.warn('Failed to update grade record:', err);
+    }
+  };
+
+  const removeGrade = async (id: string) => {
+    setGrades((prev) => prev.filter((g) => g.id !== id));
+    try {
+      await deleteGradeApi(id);
+    } catch (err) {
+      console.warn('Failed to delete grade record:', err);
+    }
+  };
+
   const launchGameWithSet = (gameSlug: GameSlug, questionSetId: string) => {
     if (!gamesCatalog || gamesCatalog.length === 0) return;
     if (!questionSets || questionSets.length === 0) return;
@@ -594,6 +670,10 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
         deleteStudentFromRoster,
         updateStudentStars,
         updateStudentPoints,
+        grades,
+        addGrade,
+        editGrade,
+        removeGrade,
         soundEnabled,
         toggleAudio,
         darkMode,

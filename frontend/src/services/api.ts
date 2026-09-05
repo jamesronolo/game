@@ -1,4 +1,4 @@
-import { User, Game, QuestionSet, Assignment, Attempt, Sticker, ClassStudent, StudentRewards, ProgrammingQuizQuestion, ProgrammingQuizSubmitResponse, ProgrammingQuizAttempt } from '../types';
+import { User, Game, QuestionSet, Assignment, Attempt, Sticker, ClassStudent, StudentRewards, ProgrammingQuizQuestion, ProgrammingQuizSubmitResponse, ProgrammingQuizAttempt, StudentGrade } from '../types';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -157,4 +157,35 @@ export async function submitProgrammingQuiz(payload: {
 
 export async function fetchProgrammingQuizAttempts(): Promise<ProgrammingQuizAttempt[]> {
   return fetchJson<ProgrammingQuizAttempt[]>('/programming-quiz/attempts');
+}
+
+// ---- School Grade Records ----
+export async function fetchGradesApi(studentId?: string): Promise<StudentGrade[]> {
+  const qs = studentId ? `?studentId=${encodeURIComponent(studentId)}` : '';
+  return fetchJson<StudentGrade[]>(`/grades${qs}`);
+}
+
+export async function createGradeApi(
+  grade: Omit<StudentGrade, 'id' | 'createdAt'>
+): Promise<{ success: boolean; id: string; createdAt: string }> {
+  return fetchJson<{ success: boolean; id: string; createdAt: string }>('/grades', {
+    method: 'POST',
+    body: JSON.stringify(grade),
+  });
+}
+
+export async function updateGradeApi(
+  id: string,
+  grade: Partial<StudentGrade>
+): Promise<{ success: boolean }> {
+  return fetchJson<{ success: boolean }>(`/grades/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(grade),
+  });
+}
+
+export async function deleteGradeApi(id: string): Promise<{ success: boolean }> {
+  return fetchJson<{ success: boolean }>(`/grades/${id}`, {
+    method: 'DELETE',
+  });
 }

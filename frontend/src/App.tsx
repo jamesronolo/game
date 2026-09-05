@@ -14,6 +14,7 @@ import { ProUpgradeView } from './components/pro-upgrade/ProUpgradeView';
 import { MultiplayerLobby } from './components/multiplayer/MultiplayerLobby';
 import { HostLobbyView } from './components/multiplayer/HostLobbyView';
 import { CodingQuizView } from './components/coding-quiz/CodingQuizView';
+import { SchoolRecordsView } from './components/school-records/SchoolRecordsView';
 
 const MainContent: React.FC = () => {
   const {
@@ -22,6 +23,7 @@ const MainContent: React.FC = () => {
     selectedSet,
     activeAssignment,
     setActiveTab,
+    gamesCatalog,
   } = useEduPlay();
 
   // If in game play view, render full-screen game launcher
@@ -53,6 +55,7 @@ const MainContent: React.FC = () => {
         {activeTab === 'multiplayer-join' && <MultiplayerLobby />}
         {activeTab === 'host-lobby' && <HostLobbyView />}
         {activeTab === 'coding-quiz' && <CodingQuizView />}
+        {activeTab === 'school-records' && <SchoolRecordsView />}
       </main>
 
       {/* Footer */}
@@ -68,7 +71,7 @@ const MainContent: React.FC = () => {
               Free Teacher Tools
             </button>
             <button onClick={() => setActiveTab('games')} className="hover:underline">
-              8 Games Catalog
+              {gamesCatalog.length > 0 ? `${gamesCatalog.length} Games` : 'Games'} Catalog
             </button>
             <button onClick={() => setActiveTab('progress')} className="hover:underline">
               Gradebook Analytics
