@@ -7,6 +7,7 @@ import {
   playWrongSound,
   playCheerSound,
 } from '../../utils/soundEffects';
+import { subscribeToLobbyUpdates, updateScore } from '../../services/socket';
 import {
   ArrowLeft,
   Trophy,
@@ -40,7 +41,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
   assignment,
   onExit,
 }) => {
-  const { currentUser, recordAttempt, setActiveTab, rewards } = useEduPlay();
+  const { currentUser, recordAttempt, setActiveTab, rewards, multiplayerCode } = useEduPlay();
 
   // Game Progress State
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -53,6 +54,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
+  const [lobbyPlayers, setLobbyPlayers] = useState<{ id: string; name: string; avatar: string; score: number; isHost: boolean }[]>([]);
 
   const questions = questionSet.questions || [];
   const currentQuestion = questions[currentQuestionIndex];
@@ -84,6 +86,14 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (!multiplayerCode) return;
+    return subscribeToLobbyUpdates(({ room }) => {
+      if (room.code === multiplayerCode) setLobbyPlayers(room.players || []);
+    });
+  }, [multiplayerCode]);
+
+  // Trigger question modal when game mechanic requests a question check
   const handleTriggerQuestion = () => {
     if (advanceTimerRef.current) {
       clearTimeout(advanceTimerRef.current);
@@ -95,7 +105,11 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
     setIsQuestionModalOpen(true);
   };
 
-  const advanceToNextQuestion = () => {
+  // Advance to next question or complete game
+  const advanceToNextQuestion = (
+    completedAnswers: QuestionAttemptAnswer[] = answersHistory,
+    completedScore: number = score
+  ) => {
     if (advanceTimerRef.current) {
       clearTimeout(advanceTimerRef.current);
       advanceTimerRef.current = null;
@@ -108,7 +122,7 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
     if (currentQuestionIndex + 1 < questions.length) {
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
-      finishGame();
+      finishGame(completedAnswers, completedScore);
     }
   };
 
@@ -125,32 +139,39 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
       isCorrect,
     };
 
-    setAnswersHistory((prev) => [...prev, record]);
-
+    let completedScore = score;
     if (isCorrect) {
       playCorrectSound();
       setFeedback('correct');
-      setScore((prev) => prev + 100);
+      const pointBonus = 100 + streak * 20;
+      completedScore += pointBonus;
+      setScore((prev) => prev + pointBonus);
       setStreak((prev) => prev + 1);
-
-      advanceTimerRef.current = setTimeout(() => {
-        advanceToNextQuestion();
-      }, 1200);
+      if (multiplayerCode) updateScore(multiplayerCode, pointBonus);
     } else {
       playWrongSound();
       setFeedback('wrong');
       setStreak(0);
     }
+    const completedAnswers = [...answersHistory, record];
+    setAnswersHistory(completedAnswers);
+
+    const advanceDelay = isCorrect ? 1200 : 3400;
+    advanceTimerRef.current = setTimeout(() => {
+      advanceToNextQuestion(completedAnswers, completedScore);
+    }, advanceDelay);
   };
 
-  const finishGame = async () => {
+  const finishGame = async (
+    completedAnswers: QuestionAttemptAnswer[] = answersHistory,
+    completedScore: number = score
+  ) => {
     setIsGameOver(true);
     playCheerSound();
     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
 
-    const correctCount = answersHistory.filter((a) => a.isCorrect).length;
-    const finalAccuracy =
-      questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 100;
+    const correctCount = completedAnswers.filter((a) => a.isCorrect).length;
+    const accuracy = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 100;
 
     try {
       await recordAttempt({
@@ -160,14 +181,14 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
         questionSetId: questionSet.id,
         questionSetTitle: questionSet.title,
         gameSlug: game.slug,
-        score: score + 100,
-        accuracy: finalAccuracy,
+        score: completedScore + 100,
+        accuracy,
         totalQuestions: questions.length,
         correctCount,
-        answers: answersHistory,
+        answers: completedAnswers,
       });
     } catch {
-      // ignore
+      // Preserve the completed screen if the persistence request fails.
     }
   };
 
@@ -317,6 +338,18 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
 
       {/* Main Play Area */}
       <main className="flex-1 relative flex flex-col items-center justify-center p-4 sm:p-8 w-full max-w-7xl mx-auto min-h-[80vh]">
+        {multiplayerCode && lobbyPlayers.length > 0 && (
+          <section aria-label="Live room leaderboard" className="mb-5 flex w-full max-w-4xl flex-wrap items-center justify-between gap-3 rounded-xl border border-sky-400/30 bg-sky-950/60 px-4 py-3">
+            <div className="text-xs font-black uppercase text-sky-300">Live room {multiplayerCode}</div>
+            <div className="flex flex-wrap gap-2">
+              {[...lobbyPlayers].sort((left, right) => right.score - left.score).map((player) => (
+                <span key={player.id} className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white">
+                  {player.avatar} {player.name}: {player.score}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
         {questions.length === 0 ? (
           <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-10 text-center shadow-2xl my-auto">
             <HelpCircle className="w-14 h-14 text-amber-400 mx-auto mb-4" />
@@ -356,11 +389,11 @@ export const GameLauncher: React.FC<GameLauncherProps> = ({
           showHint={showHint}
           setShowHint={setShowHint}
           selectedOption={selectedOption}
-          setSelectedOption={setSelectedOption}
+          setSelectedOption={(option) => setSelectedOption(option)}
           feedback={feedback}
           isOptionCorrect={isOptionCorrect}
           onAnswerSubmit={handleAnswerSubmit}
-          onAdvanceToNextQuestion={advanceToNextQuestion}
+          onAdvanceToNextQuestion={() => advanceToNextQuestion()}
         />
       )}
     </div>

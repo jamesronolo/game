@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useEduPlay } from '../../context/EduPlayContext';
 import {
   Gamepad2,
@@ -24,10 +24,18 @@ import {
   Moon,
   Code2,
 } from 'lucide-react';
+import { BackendHealth, fetchBackendHealth } from '../../services/api';
 
 export const HomeView: React.FC = () => {
   const { setActiveTab, gamesCatalog, questionSets, launchGameWithSet, darkMode, toggleDarkMode } = useEduPlay();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [backendHealth, setBackendHealth] = useState<BackendHealth | null>(null);
+
+  useEffect(() => {
+    fetchBackendHealth().then(setBackendHealth).catch(() => setBackendHealth(null));
+  }, []);
+
+  const featuredGame = gamesCatalog.find((game) => game.slug === 'alien-spelling') || gamesCatalog[0];
 
   const faqs = [
     {
@@ -49,114 +57,49 @@ export const HomeView: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-8 lg:space-y-10">
-      <section className="overflow-hidden rounded-[2rem] border border-slate-200/80 dark:border-slate-800 bg-gradient-to-br from-slate-950 via-indigo-950 to-sky-900 text-white shadow-[0_25px_60px_-20px_rgba(15,23,42,0.7)]">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="p-8 sm:p-10 lg:p-12">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-sky-200">
-                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-                Quiz Game Platform • Classroom Learning Experience
-              </div>
-
-              {/* Clickable Dark Mode / Light Mode Toggle Button on Home Page */}
-              <button
-                onClick={toggleDarkMode}
-                className="flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-400/20 active:scale-95 transition-all shadow-sm"
-                title={darkMode ? 'Switch to Light Mode ☀️' : 'Switch to Dark Mode 🌙'}
-              >
-                {darkMode ? (
-                  <>
-                    <Sun className="h-4 w-4 text-amber-300 fill-amber-300 animate-spin-slow" />
-                    <span>Light Mode ☀️</span>
-                  </>
-                ) : (
-                  <>
-                    <Moon className="h-4 w-4 text-amber-300 fill-amber-300" />
-                    <span>Dark Mode 🌙</span>
-                  </>
-                )}
-              </button>
+      <section className="relative isolate min-h-[520px] overflow-hidden rounded-2xl bg-[#07101b] text-white shadow-xl sm:min-h-[570px]">
+        {featuredGame?.imageUrl && (
+          <img src={featuredGame.imageUrl} alt="Friendly astronaut exploring a star-filled learning universe" className="absolute inset-0 -z-20 h-full w-full object-cover object-center" />
+        )}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#07101b] via-[#07101b]/85 to-[#07101b]/10" />
+        <div className="flex min-h-[520px] flex-col justify-between p-6 sm:min-h-[570px] sm:p-10 lg:p-14">
+          <div className="flex items-center justify-between gap-4">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase text-cyan-100">
+              <Sparkles className="h-4 w-4 text-amber-300" /> EduPlay Arcade
             </div>
-
-            <h1 className="mt-5 font-display text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
-              Interactive learning games for teachers, SLPs, and students.
-            </h1>
-
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-              Create once, play everywhere. Build custom question sets, launch classroom games, assign activities, and track progress with a calm, student-safe experience that feels polished and fun.
-            </p>
-
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <button
-                onClick={() => setActiveTab('coding-quiz')}
-                className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 cursor-pointer"
-              >
-                <Code2 className="h-4 w-4 text-yellow-300" />
-                Programming Test (25 Qs)
+            <div className="flex items-center gap-3">
+              <span className={`inline-flex items-center gap-2 text-xs font-bold ${backendHealth ? 'text-emerald-200' : 'text-rose-200'}`} role="status">
+                <span className={`h-2 w-2 rounded-full ${backendHealth ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                {backendHealth ? `Backend ${backendHealth.db === 'connected' ? 'connected' : 'online · demo data'}` : 'Backend offline'}
+              </span>
+              <button onClick={toggleDarkMode} className="grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-black/25 text-amber-200 transition hover:bg-white/15" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
+                {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </button>
-              <button
-                onClick={() => setActiveTab('games')}
-                className="flex items-center gap-2 rounded-2xl bg-sky-500 px-5 py-3 text-sm font-black text-slate-950 shadow-lg shadow-sky-500/25 transition hover:bg-sky-400 cursor-pointer"
-              >
-                <Gamepad2 className="h-4 w-4" />
-                Explore Games
-              </button>
-              <button
-                onClick={() => setActiveTab('sets')}
-                className="flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20 cursor-pointer"
-              >
-                <BookOpen className="h-4 w-4" />
-                Browse Question Sets
-              </button>
-              <button
-                onClick={() => setActiveTab('teacher-tools')}
-                className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 cursor-pointer"
-              >
-                <Wrench className="h-4 w-4" />
-                Free Teacher Tools
-              </button>
-            </div>
-
-            <div className="mt-8 flex flex-wrap gap-3 text-sm text-slate-300">
-              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1">Safe & Ad-Free</span>
-              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1">No account friction</span>
-              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1">Works on any device</span>
             </div>
           </div>
 
-          <div className="flex items-center justify-center bg-slate-900/40 p-6 sm:p-8 lg:p-10">
-            <div className="w-full max-w-md rounded-[1.7rem] border border-white/10 bg-white/10 p-5 backdrop-blur-xl">
-              <div className="rounded-[1.25rem] bg-slate-950/80 p-5 shadow-2xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-sky-300">Live classroom flow</p>
-                    <h2 className="mt-1 text-lg font-black text-white">Create • Play • Track</h2>
-                  </div>
-                  <div className="rounded-full bg-emerald-500/20 px-3 py-1 text-[11px] font-bold text-emerald-300">
-                    8 Game Modes
-                  </div>
-                </div>
-
-                <div className="mt-5 space-y-3">
-                  {[
-                    { label: 'Question sets', icon: BookOpenCheck },
-                    { label: 'Teacher tools', icon: Wrench },
-                    { label: 'Student rewards', icon: Award },
-                  ].map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <div key={item.label} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-200">
-                          <Icon className="h-4 w-4 text-sky-400" />
-                          {item.label}
-                        </div>
-                        <CircleCheckBig className="h-4 w-4 text-emerald-400" />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+          <div className="max-w-xl py-12 sm:py-16">
+            <p className="text-xs font-black uppercase text-amber-300">One question set. Eight ways to play.</p>
+            <h1 className="mt-3 font-display text-4xl font-black leading-[1.04] sm:text-6xl">Learning takes off.</h1>
+            <p className="mt-5 max-w-lg text-sm leading-7 text-slate-200 sm:text-base">Choose a world, bring your questions, and start a classroom adventure. Your progress and rewards follow along.</p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <button onClick={() => setActiveTab('games')} className="inline-flex items-center gap-2 rounded-lg bg-amber-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-amber-200">
+                <Gamepad2 className="h-4 w-4" /> Explore the games
+              </button>
+              <button onClick={() => setActiveTab('sets')} className="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/20">
+                <BookOpen className="h-4 w-4" /> Question sets
+              </button>
+              <button onClick={() => setActiveTab('coding-quiz')} className="grid h-11 w-11 place-items-center rounded-lg border border-white/30 bg-white/10 text-white transition hover:bg-white/20" title="Programming quiz" aria-label="Programming quiz">
+                <Code2 className="h-4 w-4" />
+              </button>
             </div>
+          </div>
+
+          <div className="flex flex-wrap items-end justify-between gap-3 border-t border-white/20 pt-4">
+            <p className="text-xs font-semibold text-slate-200">{gamesCatalog.length} game worlds <span className="px-1 text-amber-300">/</span> {questionSets.length} question sets</p>
+            <button onClick={() => setActiveTab('host-lobby')} className="inline-flex items-center gap-2 text-xs font-bold text-cyan-100 transition hover:text-white">
+              <Users className="h-4 w-4" /> Host a live room <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </section>

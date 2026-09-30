@@ -6,7 +6,7 @@ import { useEduPlay } from '../../context/EduPlayContext';
 const AVATAR_OPTIONS = ['🐶', '🐱', '🦊', '🦁', '🐸', '🚀', '⭐', '👾', '👑', '🧙‍♂️'];
 
 export const MultiplayerLobby: React.FC = () => {
-  const { setActiveTab, setSelectedGame, setSelectedSet, gamesCatalog, questionSets } = useEduPlay();
+  const { setActiveTab, setSelectedGame, setSelectedSet, setMultiplayerCode, gamesCatalog, questionSets } = useEduPlay();
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('🐶');
@@ -23,6 +23,7 @@ export const MultiplayerLobby: React.FC = () => {
       // Find game and set for playing
       const g = gamesCatalog.find((x) => x.slug === data.room.gameSlug) || gamesCatalog[0];
       const s = questionSets.find((x) => x.id === data.room.questionSetId) || questionSets[0];
+      setMultiplayerCode(data.room.code);
       setSelectedGame(g);
       setSelectedSet(s);
       setActiveTab('game-play');
@@ -46,6 +47,7 @@ export const MultiplayerLobby: React.FC = () => {
       if (res.success) {
         setIsJoined(true);
         setRoom(res.room);
+        setMultiplayerCode(res.code || code);
       } else {
         setError(res.error || 'Failed to join room');
       }

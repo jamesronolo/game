@@ -57,6 +57,8 @@ interface EduPlayContextType {
   setSelectedSet: (set: QuestionSet | null) => void;
   activeAssignment: Assignment | null;
   setActiveAssignment: (asg: Assignment | null) => void;
+  multiplayerCode: string | null;
+  setMultiplayerCode: (code: string | null) => void;
   editingSetId: string | null;
   setEditingSetId: (id: string | null) => void;
 
@@ -140,6 +142,7 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [selectedSet, setSelectedSet] = useState<QuestionSet | null>(null);
   const [activeAssignment, setActiveAssignment] = useState<Assignment | null>(null);
+  const [multiplayerCode, setMultiplayerCode] = useState<string | null>(null);
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
 
   // Users state — default to student view until logged in
@@ -192,12 +195,17 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Dynamic backend data load from API endpoints
   useEffect(() => {
     async function loadBackendData() {
+      let rewardsStudentId = currentUser.id;
+      const preferredRole = localStorage.getItem('eduplay_role') || currentUser.role;
+
       try {
         const users = await fetchUsers();
         if (users && users.length > 0) {
           setUsersList(users);
-          setCurrentUser(users[0]);
-          setIsPro(users[0].isPro);
+          const activeUser = users.find((user) => user.role === preferredRole) || users[0];
+          rewardsStudentId = activeUser.id;
+          setCurrentUser(activeUser);
+          setIsPro(activeUser.isPro);
         }
       } catch (err) {
         console.warn('Backend users load error:', err);
@@ -205,65 +213,53 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       try {
         const games = await fetchGamesCatalog();
-        if (games && games.length > 0) {
-          setGamesCatalog(
-            games.map((g) => ({
-              ...g,
-              imageUrl: GAME_IMAGE_MAP[g.slug] || g.imageUrl,
-            }))
-          );
-        }
+        setGamesCatalog(
+          games.map((g) => ({
+            ...g,
+            imageUrl: GAME_IMAGE_MAP[g.slug] || g.imageUrl,
+          }))
+        );
       } catch (err) {
         console.warn('Backend games load error:', err);
       }
 
       try {
         const sets = await fetchQuestionSets();
-        if (sets && sets.length > 0) {
-          setQuestionSets(sets);
-        }
+        setQuestionSets(sets);
       } catch (err) {
         console.warn('Backend question sets load error:', err);
       }
 
       try {
         const asgs = await fetchAssignments();
-        if (asgs && asgs.length > 0) {
-          setAssignments(asgs);
-        }
+        setAssignments(asgs);
       } catch (err) {
         console.warn('Backend assignments load error:', err);
       }
 
       try {
         const atts = await fetchAttempts();
-        if (atts && atts.length > 0) {
-          setAttempts(atts);
-        }
+        setAttempts(atts);
       } catch (err) {
         console.warn('Backend attempts load error:', err);
       }
 
       try {
         const stickers = await fetchStickersCatalog();
-        if (stickers && stickers.length > 0) {
-          setStickersCatalog(stickers);
-        }
+        setStickersCatalog(stickers);
       } catch (err) {
         console.warn('Backend stickers load error:', err);
       }
 
       try {
         const roster = await fetchClassRoster();
-        if (roster && roster.length > 0) {
-          setClassStudents(roster);
-        }
+        setClassStudents(roster);
       } catch (err) {
         console.warn('Backend roster load error:', err);
       }
 
       try {
-        const rws = await fetchStudentRewards(currentUser.id);
+        const rws = await fetchStudentRewards(rewardsStudentId);
         if (rws) {
           setRewards(rws);
         }
@@ -422,6 +418,8 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     try {
       await recordAttemptApi(attemptData);
+      const savedRewards = await fetchStudentRewards(attemptData.studentId);
+      setRewards(savedRewards);
     } catch (err) {
       console.warn('Failed to persist attempt to backend:', err);
     }
@@ -644,6 +642,8 @@ export const EduPlayProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setSelectedSet,
         activeAssignment,
         setActiveAssignment,
+        multiplayerCode,
+        setMultiplayerCode,
         editingSetId,
         setEditingSetId,
         currentUser,

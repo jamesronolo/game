@@ -5,7 +5,7 @@ import { useEduPlay } from '../../context/EduPlayContext';
 import { GameSlug } from '../../types';
 
 export const HostLobbyView: React.FC = () => {
-  const { gamesCatalog, questionSets, setActiveTab, setSelectedGame, setSelectedSet } = useEduPlay();
+  const { currentUser, gamesCatalog, questionSets, setActiveTab, setSelectedGame, setSelectedSet, setMultiplayerCode } = useEduPlay();
   const [selectedGameSlug, setSelectedGameSlug] = useState(gamesCatalog[0]?.slug || 'wheel-spin');
   const [selectedSetId, setSelectedSetId] = useState(questionSets[0]?.id || 'qs-1');
   const [room, setRoom] = useState<any>(null);
@@ -21,7 +21,7 @@ export const HostLobbyView: React.FC = () => {
 
   const handleCreateRoom = () => {
     setError('');
-    createLobby(selectedGameSlug, selectedSetId, 'Teacher Host', (res) => {
+    createLobby(selectedGameSlug, selectedSetId, currentUser?.name || 'Teacher Host', (res) => {
       if (res.success) {
         setRoom(res.room);
       } else {
@@ -36,6 +36,7 @@ export const HostLobbyView: React.FC = () => {
     const s = questionSets.find((x) => x.id === room.questionSetId) || questionSets[0];
     setSelectedGame(g);
     setSelectedSet(s);
+    setMultiplayerCode(room.code);
     startGame(room.code);
     setActiveTab('game-play');
   };

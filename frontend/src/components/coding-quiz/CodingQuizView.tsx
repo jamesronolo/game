@@ -123,6 +123,7 @@ export const CodingQuizView: React.FC = () => {
       const res = await submitProgrammingQuiz({
         answers: [{ questionId: q.id, selectedOption: selected }],
         studentName,
+        saveAttempt: false,
       });
       const gradedItem = res.graded[0];
       setFeedbackResult(gradedItem);

@@ -1,6 +1,19 @@
 import { User, Game, QuestionSet, Assignment, Attempt, Sticker, ClassStudent, StudentRewards, ProgrammingQuizQuestion, ProgrammingQuizSubmitResponse, ProgrammingQuizAttempt, StudentGrade } from '../types';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const configuredApiUrl = import.meta.env.VITE_API_URL?.replace(/\/+$/, '');
+const API_BASE_URL = configuredApiUrl
+  ? `${configuredApiUrl}${configuredApiUrl.endsWith('/api') ? '' : '/api'}`
+  : '/api';
+
+export interface BackendHealth {
+  status: 'ok' | string;
+  db: 'connected' | 'in-memory-fallback' | string;
+  timestamp: string;
+}
+
+export async function fetchBackendHealth(): Promise<BackendHealth> {
+  return fetchJson<BackendHealth>('/health');
+}
 
 async function fetchJson<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -148,6 +161,7 @@ export async function fetchProgrammingQuizQuestions(): Promise<ProgrammingQuizQu
 export async function submitProgrammingQuiz(payload: {
   answers: { questionId: string; selectedOption: string }[];
   studentName?: string;
+  saveAttempt?: boolean;
 }): Promise<ProgrammingQuizSubmitResponse> {
   return fetchJson<ProgrammingQuizSubmitResponse>('/programming-quiz/submit', {
     method: 'POST',
