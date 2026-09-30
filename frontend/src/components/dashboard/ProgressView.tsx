@@ -3,54 +3,26 @@ import { useEduPlay } from '../../context/EduPlayContext';
 import { Attempt, ProgrammingQuizAttempt } from '../../types';
 import { fetchProgrammingQuizAttempts } from '../../services/api';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
-import {
   BarChart3,
-  Trophy,
-  CheckCircle2,
-  Clock,
-  User,
   Download,
   BookOpen,
-  Award,
-  Zap,
   Eye,
-  Check,
-  X,
   FileText,
   Printer,
   RefreshCw,
   Search,
-  Filter,
   Code2,
   Sparkles,
-  TrendingUp,
   ArrowUpDown,
-  ChevronRight,
-  SlidersHorizontal,
-  GraduationCap,
-  PieChart as PieChartIcon,
-  Layers,
-  AlertTriangle,
-  Flame,
-  Target,
   ArrowRight,
-  Gamepad2,
 } from 'lucide-react';
+import { AttemptDetailModal } from './components/AttemptDetailModal';
+import { CodingAttemptDetailModal } from './components/CodingAttemptDetailModal';
+import { AnalyticsCharts, AnalyticsTab } from './components/AnalyticsCharts';
+import { ProgressSummaryCards } from './components/ProgressSummaryCards';
 
 type FilterCategory = 'all' | 'games' | 'programming-quiz' | 'high-accuracy' | 'needs-help';
 type SortOption = 'recent' | 'score-desc' | 'score-asc' | 'accuracy-desc' | 'accuracy-asc';
-type AnalyticsTab = 'scores' | 'distribution' | 'topics' | 'leaderboard';
 
 export const ProgressView: React.FC = () => {
   const { attempts, currentUser, setActiveTab } = useEduPlay();
@@ -138,7 +110,6 @@ export const ProgressView: React.FC = () => {
 
     let list = [...gameItems, ...codingItems];
 
-    // Filter dynamically by Category
     if (filterCategory === 'games') {
       list = list.filter((i) => i.type === 'game');
     } else if (filterCategory === 'programming-quiz') {
@@ -149,7 +120,6 @@ export const ProgressView: React.FC = () => {
       list = list.filter((i) => i.accuracy < 75);
     }
 
-    // Filter dynamically by Search Query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(
@@ -160,7 +130,6 @@ export const ProgressView: React.FC = () => {
       );
     }
 
-    // Sort dynamically
     list.sort((a, b) => {
       if (sortBy === 'recent') {
         return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
@@ -187,10 +156,10 @@ export const ProgressView: React.FC = () => {
 
   // Grade Distribution calculated dynamically
   const gradeDistribution = useMemo(() => {
-    let excellent = 0; // >= 90
-    let proficient = 0; // 80 - 89
-    let developing = 0; // 70 - 79
-    let needsReview = 0; // < 70
+    let excellent = 0;
+    let proficient = 0;
+    let developing = 0;
+    let needsReview = 0;
 
     combinedList.forEach((item) => {
       if (item.accuracy >= 90) excellent++;
@@ -201,115 +170,113 @@ export const ProgressView: React.FC = () => {
 
     return [
       { name: 'Mastery (90-100%)', count: excellent, color: '#10b981' },
-      { name: 'Proficient (80-89%)', count: proficient, color: '#3b82f6' },
+      { name: 'Proficient (80-89%)', count: proficient, color: '#38bdf8' },
       { name: 'Developing (70-79%)', count: developing, color: '#f59e0b' },
-      { name: 'Needs Practice (<70%)', count: needsReview, color: '#ef4444' },
+      { name: 'Needs Review (<70%)', count: needsReview, color: '#ef4444' },
     ];
   }, [combinedList]);
 
-  // Topic Performance Breakdown dynamically calculated
+  // Topic Mastery Breakdown
   const topicBreakdown = useMemo(() => {
-    const map: Record<string, { totalAccuracy: number; count: number; totalScore: number }> = {};
+    const map = new Map<string, { topic: string; totalAccuracy: number; count: number }>();
 
     combinedList.forEach((item) => {
-      const key = item.type === 'programming-quiz' ? 'Programming Quiz' : (item.title || 'Games');
-      if (!map[key]) {
-        map[key] = { totalAccuracy: 0, count: 0, totalScore: 0 };
-      }
-      map[key].totalAccuracy += item.accuracy;
-      map[key].totalScore += item.score;
-      map[key].count += 1;
+      const topicKey = item.title;
+      const current = map.get(topicKey) || { topic: topicKey, totalAccuracy: 0, count: 0 };
+      current.totalAccuracy += item.accuracy;
+      current.count += 1;
+      map.set(topicKey, current);
     });
 
-    return Object.entries(map).map(([topic, data]) => ({
-      topic: topic.length > 22 ? topic.substring(0, 22) + '...' : topic,
-      fullTopic: topic,
-      avgAccuracy: Math.round(data.totalAccuracy / data.count),
-      avgScore: Math.round(data.totalScore / data.count),
-      attempts: data.count,
-    })).sort((a, b) => b.attempts - a.attempts);
+    return Array.from(map.values())
+      .map((t) => ({
+        topic: t.topic.length > 22 ? t.topic.slice(0, 22) + '…' : t.topic,
+        fullTopic: t.topic,
+        avgAccuracy: Math.round(t.totalAccuracy / t.count),
+        attempts: t.count,
+      }))
+      .sort((a, b) => b.avgAccuracy - a.avgAccuracy);
   }, [combinedList]);
 
-  // Student Leaderboard dynamically ranked
+  // Student Leaderboard
   const studentLeaderboard = useMemo(() => {
-    const studentMap: Record<string, { totalScore: number; totalAccuracy: number; count: number; perfectScores: number }> = {};
+    const map = new Map<string, { name: string; totalScore: number; count: number; totalAccuracy: number }>();
 
     combinedList.forEach((item) => {
-      const name = item.studentName || 'Student';
-      if (!studentMap[name]) {
-        studentMap[name] = { totalScore: 0, totalAccuracy: 0, count: 0, perfectScores: 0 };
-      }
-      studentMap[name].totalScore += item.score;
-      studentMap[name].totalAccuracy += item.accuracy;
-      studentMap[name].count += 1;
-      if (item.accuracy === 100) studentMap[name].perfectScores += 1;
+      const current = map.get(item.studentName) || {
+        name: item.studentName,
+        totalScore: 0,
+        count: 0,
+        totalAccuracy: 0,
+      };
+      current.totalScore += item.score;
+      current.count += 1;
+      current.totalAccuracy += item.accuracy;
+      map.set(item.studentName, current);
     });
 
-    return Object.entries(studentMap)
-      .map(([name, data]) => ({
-        name,
-        totalScore: data.totalScore,
-        avgAccuracy: Math.round(data.totalAccuracy / data.count),
-        completedCount: data.count,
-        perfectScores: data.perfectScores,
+    return Array.from(map.values())
+      .map((s) => ({
+        name: s.name,
+        totalScore: s.totalScore,
+        completedCount: s.count,
+        avgAccuracy: Math.round(s.totalAccuracy / s.count),
       }))
       .sort((a, b) => b.totalScore - a.totalScore)
       .slice(0, 10);
   }, [combinedList]);
 
-  // Weakest and Strongest Topics
+  // Pedagogical Insights
   const topicInsights = useMemo(() => {
     if (topicBreakdown.length === 0) return { best: null, challenging: null };
     const sorted = [...topicBreakdown].sort((a, b) => b.avgAccuracy - a.avgAccuracy);
     return {
       best: sorted[0],
-      challenging: sorted[sorted.length - 1],
+      challenging: sorted.length > 1 ? sorted[sorted.length - 1] : null,
     };
   }, [topicBreakdown]);
 
-  // Chart Data dynamically prepped for top recent records
-  const chartData = combinedList.slice(0, 10).map((a, idx) => ({
-    name: a.studentName.split(' ')[0] || `Student ${idx + 1}`,
-    score: a.score,
-    accuracy: a.accuracy,
-    type: a.type === 'programming-quiz' ? 'Prog Quiz' : a.gameSlug || 'Game',
-  }));
+  // Chart Data: Last 10 items
+  const chartData = useMemo(() => {
+    return [...combinedList]
+      .reverse()
+      .slice(-10)
+      .map((item, idx) => ({
+        name: item.studentName.split(' ')[0] || `S${idx + 1}`,
+        score: item.score,
+        accuracy: item.accuracy,
+      }));
+  }, [combinedList]);
 
+  // Export CSV
   const exportGradebookCSV = () => {
     setExporting(true);
-    const headers = [
-      'Student Name',
-      'Activity / Question Set',
-      'Type',
-      'Score Awarded',
-      'Max Score',
-      'Accuracy %',
-      'Mastery Status',
-      'Date Completed',
-    ];
-    const rows = combinedList.map((a) => [
-      `"${a.studentName}"`,
-      `"${a.title}"`,
-      a.type === 'programming-quiz' ? 'Programming Quiz' : (a.gameSlug || 'Game'),
-      a.score,
-      a.maxScore,
-      `${a.accuracy}%`,
-      a.accuracy >= 80 ? 'Mastered' : 'Needs Practice',
-      `"${new Date(a.completedAt).toLocaleString()}"`,
-    ]);
+    try {
+      const headers = ['Student Name', 'Activity Title', 'Type', 'Game Slug', 'Score', 'Accuracy %', 'Date Completed'];
+      const rows = combinedList.map((i) => [
+        `"${i.studentName}"`,
+        `"${i.title.replace(/"/g, '""')}"`,
+        `"${i.type}"`,
+        `"${i.gameSlug || 'N/A'}"`,
+        i.score,
+        `${i.accuracy}%`,
+        `"${new Date(i.completedAt).toLocaleString()}"`,
+      ]);
 
-    const csvContent =
-      'data:text/csv;charset=utf-8,' +
-      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `EduPlay_Gradebook_Analytics_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => setExporting(false), 800);
+      const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `EduPlay_Gradebook_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {
+      // ignore
+    } finally {
+      setTimeout(() => setExporting(false), 500);
+    }
   };
 
   const handlePrint = () => {
@@ -317,46 +284,34 @@ export const ProgressView: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Top Header & Action Buttons Banner */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-800/80 p-6 sm:p-8 shadow-2xl text-white overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2.5 max-w-2xl">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 select-none">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl border-2 border-indigo-900/80 p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="px-3.5 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 rounded-full text-xs font-black uppercase tracking-widest inline-flex items-center gap-1.5 shadow-sm">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>Live Gradebook & Diagnostics Studio</span>
+              <span className="px-3 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 rounded-full text-xs font-black uppercase tracking-widest">
+                Academic Gradebook & Learning Analytics
               </span>
-              <span className="text-xs font-bold text-slate-300 hidden sm:inline">• Unified Classroom Intelligence</span>
+              <span className="text-xs font-bold text-slate-300">Live Database Synced</span>
             </div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-white flex items-center gap-3 tracking-tight">
-              <BarChart3 className="w-8 h-8 sm:w-10 sm:h-10 text-sky-400" />
-              <span>Progress & Gradebook Analytics</span>
+            <h1 className="text-3xl sm:text-4xl font-black text-white flex items-center gap-3 tracking-tight">
+              <BarChart3 className="w-9 h-9 text-indigo-400" />
+              <span>Student Performance & Progress</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Real-time pedagogical analytics for games, 25-question Programming Quizzes, mastery distributions, automated auto-correct logs, and diagnostic heatmaps.
+            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+              Track mastery rates, review question breakdowns, inspect answers for interactive games and programming tests, and export gradebook records!
             </p>
           </div>
 
-          {/* Action Buttons Toolbar */}
+          {/* Action Toolbar */}
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <button
               onClick={() => setActiveTab('coding-quiz')}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:brightness-110 text-white text-xs font-black shadow-lg shadow-indigo-900/40 border border-indigo-400/40 transition active:scale-95 cursor-pointer"
-              title="Launch Programming Quiz"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:brightness-110 text-white text-xs font-bold shadow-lg shadow-indigo-950/40 border border-indigo-400/30 transition active:scale-95 cursor-pointer"
             >
               <Code2 className="w-4 h-4 text-yellow-300" />
-              <span>Programming Test</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('games')}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-black shadow-lg shadow-sky-950/40 border border-sky-400/40 transition active:scale-95 cursor-pointer"
-              title="Browse Games Library"
-            >
-              <Gamepad2 className="w-4 h-4 text-amber-200" />
-              <span>Games Library</span>
+              <span>Open Coding Test Quiz</span>
             </button>
 
             <button
@@ -391,51 +346,13 @@ export const ProgressView: React.FC = () => {
       </div>
 
       {/* Stats Summary KPI Widgets (4-Card Grid) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm flex items-center gap-4 transition hover:shadow-md">
-          <div className="w-13 h-13 rounded-2xl bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold shadow-inner shrink-0">
-            <CheckCircle2 className="w-7 h-7" />
-          </div>
-          <div>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Submissions</p>
-            <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5">{totalCompleted}</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">Games & Code Quizzes</p>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm flex items-center gap-4 transition hover:shadow-md">
-          <div className="w-13 h-13 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold shadow-inner shrink-0">
-            <Zap className="w-7 h-7" />
-          </div>
-          <div>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Average Accuracy</p>
-            <h3 className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{avgAccuracy}%</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">Classroom Overall</p>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm flex items-center gap-4 transition hover:shadow-md">
-          <div className="w-13 h-13 rounded-2xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold shadow-inner shrink-0">
-            <GraduationCap className="w-7 h-7" />
-          </div>
-          <div>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Mastery Rate (≥80%)</p>
-            <h3 className="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 mt-0.5">{masteryRate}%</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">{masteryCount} of {totalCompleted} passed</p>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm flex items-center gap-4 transition hover:shadow-md">
-          <div className="w-13 h-13 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shadow-inner shrink-0">
-            <Trophy className="w-7 h-7" />
-          </div>
-          <div>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Score Points</p>
-            <h3 className="text-2xl sm:text-3xl font-black text-amber-500 mt-0.5">{totalScore}</h3>
-            <p className="text-[10px] text-slate-400 mt-0.5">Cumulative Rewards</p>
-          </div>
-        </div>
-      </div>
+      <ProgressSummaryCards
+        totalCompleted={totalCompleted}
+        avgAccuracy={avgAccuracy}
+        masteryRate={masteryRate}
+        masteryCount={masteryCount}
+        totalScore={totalScore}
+      />
 
       {/* Dynamic Classroom Insights Bar */}
       {topicInsights.best && (
@@ -457,214 +374,26 @@ export const ProgressView: React.FC = () => {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setActiveTab('sets')}
-              className="text-xs font-bold text-indigo-300 hover:text-white underline flex items-center gap-1"
+              className="text-xs font-bold text-indigo-300 hover:text-white underline flex items-center gap-1 cursor-pointer"
             >
-              <span>Manage Sets</span>
-              <ChevronRight className="w-3.5 h-3.5" />
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Review Practice Sets</span>
+              <ArrowRight className="w-3 h-3" />
             </button>
           </div>
         </div>
       )}
 
-      {/* Interactive Visual Analytics Studio */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6">
-        {/* Studio Tabs Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-indigo-500" />
-            <h2 className="font-extrabold text-lg text-slate-900 dark:text-white">Visual Analytics Studio</h2>
-          </div>
-
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl">
-            {[
-              { id: 'scores', label: 'Recent Performance', icon: BarChart3 },
-              { id: 'distribution', label: 'Grade Distribution', icon: PieChartIcon },
-              { id: 'topics', label: 'Topic Mastery', icon: Target },
-              { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-            ].map((tab) => {
-              const isActive = activeAnalyticsTab === tab.id;
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveAnalyticsTab(tab.id as AnalyticsTab)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25 scale-[1.02]'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Tab 1: Recent Performance Chart */}
-        {activeAnalyticsTab === 'scores' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs text-slate-400">
-              <span>Dual Axis: Score (Blue) vs Accuracy % (Green)</span>
-              <span>Last 10 Completions</span>
-            </div>
-            <div className="h-72 w-full">
-              {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.3} />
-                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-                    <YAxis yAxisId="left" orientation="left" stroke="#38bdf8" tick={{ fontSize: 11 }} />
-                    <YAxis yAxisId="right" orientation="right" stroke="#34d399" domain={[0, 100]} tick={{ fontSize: 11 }} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#0f172a',
-                        borderColor: '#334155',
-                        borderRadius: '12px',
-                        color: '#fff',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Bar yAxisId="left" dataKey="score" fill="#38bdf8" radius={[6, 6, 0, 0]} name="Score Points" />
-                    <Bar yAxisId="right" dataKey="accuracy" fill="#34d399" radius={[6, 6, 0, 0]} name="Accuracy %" />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-slate-400 text-xs">
-                  No chart data available yet.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 2: Grade Distribution Breakdown */}
-        {activeAnalyticsTab === 'distribution' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={gradeDistribution}
-                    dataKey="count"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    label={({ name, percent }) => `${name.split(' ')[0]} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {gradeDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#0f172a',
-                      borderColor: '#334155',
-                      borderRadius: '12px',
-                      color: '#fff',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">Proficiency Tier Breakdown</h3>
-              {gradeDistribution.map((g, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: g.color }} />
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{g.name}</span>
-                  </div>
-                  <span className="text-xs font-black text-slate-900 dark:text-white bg-slate-200 dark:bg-slate-700 px-2.5 py-0.5 rounded-full">
-                    {g.count} ({totalCompleted > 0 ? Math.round((g.count / totalCompleted) * 100) : 0}%)
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: Topic Mastery List */}
-        {activeAnalyticsTab === 'topics' && (
-          <div className="space-y-4">
-            <p className="text-xs text-slate-400">Classroom accuracy metrics grouped by question set & activity topic</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {topicBreakdown.map((t, idx) => (
-                <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-xs text-slate-900 dark:text-white truncate max-w-[180px]" title={t.fullTopic}>
-                      {t.fullTopic}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-md">
-                      {t.attempts} {t.attempts === 1 ? 'attempt' : 'attempts'}
-                    </span>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between text-xs font-black mb-1">
-                      <span className="text-slate-500">Mastery:</span>
-                      <span className={t.avgAccuracy >= 80 ? 'text-emerald-500' : t.avgAccuracy >= 60 ? 'text-amber-500' : 'text-rose-500'}>
-                        {t.avgAccuracy}%
-                      </span>
-                    </div>
-                    <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          t.avgAccuracy >= 80 ? 'bg-emerald-500' : t.avgAccuracy >= 60 ? 'bg-amber-500' : 'bg-rose-500'
-                        }`}
-                        style={{ width: `${t.avgAccuracy}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 4: Student Leaderboard */}
-        {activeAnalyticsTab === 'leaderboard' && (
-          <div className="space-y-4">
-            <p className="text-xs text-slate-400">Top 10 performing students ranked by total points and accuracy</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {studentLeaderboard.map((st, idx) => (
-                <div
-                  key={idx}
-                  className={`p-4 rounded-2xl border transition-all flex items-center justify-between ${
-                    idx === 0
-                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-300 ring-2 ring-amber-500/20'
-                      : idx === 1
-                      ? 'bg-slate-100 dark:bg-slate-800/90 border-slate-300 dark:border-slate-600'
-                      : idx === 2
-                      ? 'bg-orange-500/10 border-orange-500/40'
-                      : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl font-black text-sm flex items-center justify-center bg-slate-900/80 text-white shadow-inner">
-                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
-                    </div>
-                    <div>
-                      <h4 className="font-extrabold text-xs text-slate-900 dark:text-white">{st.name}</h4>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                        {st.completedCount} tests • {st.avgAccuracy}% avg
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-right">
-                    <span className="font-black text-sm text-amber-500">{st.totalScore}</span>
-                    <p className="text-[10px] text-slate-400 uppercase font-bold">pts</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Visual Analytics Chart Suite with Interactive Tabs */}
+      <AnalyticsCharts
+        activeTab={activeAnalyticsTab}
+        setActiveTab={setActiveAnalyticsTab}
+        chartData={chartData}
+        gradeDistribution={gradeDistribution}
+        totalCompleted={totalCompleted}
+        topicBreakdown={topicBreakdown}
+        studentLeaderboard={studentLeaderboard}
+      />
 
       {/* Filter Buttons, Search & Gradebook Table */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm space-y-4">
@@ -842,140 +571,17 @@ export const ProgressView: React.FC = () => {
         </div>
       </div>
 
-      {/* ─── MODAL 1: Game Attempt Question Inspector ───────────────────────────── */}
-      {selectedAttempt && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150 max-h-[85vh] overflow-y-auto text-slate-900 dark:text-white">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-sky-600 dark:text-sky-400">Game Response Inspector</span>
-                <h3 className="font-black text-xl text-slate-900 dark:text-white mt-0.5">
-                  {selectedAttempt.studentName}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Set: {selectedAttempt.questionSetTitle} • Game: {selectedAttempt.gameSlug} • Score: {selectedAttempt.score} pts ({selectedAttempt.accuracy}%)
-                </p>
-              </div>
+      {/* Modal 1: Game Attempt Question Inspector */}
+      <AttemptDetailModal
+        attempt={selectedAttempt}
+        onClose={() => setSelectedAttempt(null)}
+      />
 
-              <button
-                onClick={() => setSelectedAttempt(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-500">
-                Individual Question Breakdown ({selectedAttempt.answers?.length || 0})
-              </h4>
-
-              {selectedAttempt.answers && selectedAttempt.answers.length > 0 ? (
-                selectedAttempt.answers.map((ans, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-4 rounded-2xl border flex items-center justify-between gap-4 ${
-                      ans.isCorrect
-                        ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-950 dark:text-emerald-200'
-                        : 'bg-rose-50/60 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800 text-rose-950 dark:text-rose-200'
-                    }`}
-                  >
-                    <div>
-                      <p className="font-bold text-xs">{ans.questionPrompt}</p>
-                      <p className="text-[11px] mt-1">
-                        Student: <span className="font-bold">{ans.studentAnswer}</span> | Correct:{' '}
-                        <span className="font-bold">{ans.correctAnswer}</span>
-                      </p>
-                    </div>
-
-                    <div className="shrink-0">
-                      {ans.isCorrect ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                      ) : (
-                        <X className="w-5 h-5 text-rose-600" />
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs text-slate-400 italic">No question breakdown recorded.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── MODAL 2: Programming Quiz Attempt Inspector ────────────────────────── */}
-      {selectedCodingAttempt && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150 max-h-[85vh] overflow-y-auto text-slate-900 dark:text-white">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-violet-600 dark:text-violet-400">Programming Quiz Inspector</span>
-                <h3 className="font-black text-xl text-slate-900 dark:text-white mt-0.5">
-                  {selectedCodingAttempt.studentName || 'Anonymous'}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Score: <span className="font-black text-emerald-600">{selectedCodingAttempt.score} / {selectedCodingAttempt.totalQuestions} pts</span> • {selectedCodingAttempt.accuracy}% Accuracy • {new Date(selectedCodingAttempt.completedAt).toLocaleString()}
-                </p>
-              </div>
-
-              <button
-                onClick={() => setSelectedCodingAttempt(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-500">
-                25 Questions Breakdown ({selectedCodingAttempt.answers?.length || 0})
-              </h4>
-
-              {selectedCodingAttempt.answers && selectedCodingAttempt.answers.length > 0 ? (
-                selectedCodingAttempt.answers.map((ans, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-4 rounded-2xl border flex items-start justify-between gap-3 ${
-                      ans.isCorrect
-                        ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800'
-                        : 'bg-rose-50/60 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800'
-                    }`}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-xs text-slate-800 dark:text-white">{idx + 1}. {ans.question}</p>
-                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${ans.isCorrect ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
-                          {ans.isCorrect ? '+1 Point' : '0 Points'}
-                        </span>
-                        <span className="text-[11px] text-slate-600 dark:text-slate-300">
-                          Selected: Option {ans.selectedOption} | Correct: Option {ans.correctOption} ({ans.correctAnswer})
-                        </span>
-                      </div>
-                      {!ans.isCorrect && ans.explanation && (
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 italic">
-                          💡 {ans.explanation}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="shrink-0 mt-0.5">
-                      {ans.isCorrect ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                      ) : (
-                        <X className="w-5 h-5 text-rose-600" />
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs text-slate-400 italic">No question breakdown recorded.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal 2: Programming Quiz Attempt Inspector */}
+      <CodingAttemptDetailModal
+        attempt={selectedCodingAttempt}
+        onClose={() => setSelectedCodingAttempt(null)}
+      />
     </div>
   );
 };
