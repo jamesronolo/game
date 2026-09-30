@@ -23,6 +23,7 @@ const MainContent: React.FC = () => {
     selectedSet,
     activeAssignment,
     setActiveTab,
+    setMultiplayerCode,
     gamesCatalog,
   } = useEduPlay();
 
@@ -33,7 +34,10 @@ const MainContent: React.FC = () => {
         game={selectedGame}
         questionSet={selectedSet}
         assignment={activeAssignment}
-        onExit={() => setActiveTab('games')}
+        onExit={() => {
+          setMultiplayerCode(null);
+          setActiveTab('games');
+        }}
       />
     );
   }
