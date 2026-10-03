@@ -1,24 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useEduPlay } from '../../context/EduPlayContext';
-import { QuestionSet, Question, QuestionType } from '../../types';
+import { QuestionSet, Question } from '../../types';
 import {
   ArrowLeft,
   Save,
   Plus,
   Trash2,
-  HelpCircle,
-  Volume2,
-  Check,
-  Type,
-  ListFilter,
-  Image as ImageIcon,
-  Mic,
   Sparkles,
   Download,
   Upload,
   Bot,
   Loader2,
-  FileSpreadsheet,
+  X,
+  Layers,
+  BookOpen,
+  CheckCircle2,
 } from 'lucide-react';
 
 import { generateAiQuestionSet } from '../../services/api';
@@ -154,7 +150,6 @@ export const SetEditorView: React.FC = () => {
         }
         setIsAiModalOpen(false);
       } else {
-        // Smart fallback generator if AI key is missing
         generateSmartFallbackQuestions();
       }
     } catch (err) {
@@ -192,7 +187,6 @@ export const SetEditorView: React.FC = () => {
     setIsAiModalOpen(false);
   };
 
-  // Export Question Set as JSON
   const handleExportJson = () => {
     const data = {
       title,
@@ -212,7 +206,6 @@ export const SetEditorView: React.FC = () => {
     link.click();
   };
 
-  // Import JSON or CSV file
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -230,72 +223,49 @@ export const SetEditorView: React.FC = () => {
           if (json.questions && Array.isArray(json.questions)) {
             setQuestions(json.questions);
           }
-        } else if (file.name.endsWith('.csv')) {
-          const lines = text.split('\n').filter((l) => l.trim());
-          const importedQuestions: Question[] = [];
-          lines.slice(1).forEach((line, idx) => {
-            const parts = line.split(',');
-            if (parts.length >= 2) {
-              importedQuestions.push({
-                id: `q-csv-${Date.now()}-${idx}`,
-                setId: editingSetId || 'new',
-                promptText: parts[0].trim(),
-                answer: parts[1].trim(),
-                options: parts.slice(2).map((p) => p.trim()),
-                type: 'multiple_choice',
-                position: idx + 1,
-              });
-            }
-          });
-          if (importedQuestions.length > 0) {
-            setQuestions(importedQuestions);
-          }
         }
       } catch (err) {
-        alert('Failed to parse uploaded file. Please ensure valid JSON or CSV format.');
+        alert('Failed to parse uploaded JSON file.');
       }
     };
     reader.readAsText(file);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim()) {
-      alert('Please enter a set title.');
+      alert('Please enter a Title for this question set.');
       return;
     }
 
-    const setId = editingSetId || `qs-${Date.now()}`;
-    const tagsArray = tagsInput
-      .split(',')
-      .map((t) => t.trim())
-      .filter((t) => t.length > 0);
-
-    const savedSet: QuestionSet = {
-      id: setId,
+    const payload: QuestionSet = {
+      id: editingSetId || `qs-custom-${Date.now()}`,
+      title: title.trim(),
+      description: description.trim(),
+      subject: subject.trim(),
+      gradeLevel: gradeLevel.trim(),
+      isPublic,
+      tags: tagsInput
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
       ownerId: currentUser.id,
       ownerName: currentUser.name,
-      title,
-      description,
-      subject,
-      gradeLevel,
-      isPublic,
-      tags: tagsArray,
       questions,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    saveQuestionSet(savedSet);
+    await saveQuestionSet(payload);
     setActiveTab('sets');
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Top Header Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Top Action Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button
           onClick={() => setActiveTab('sets')}
-          className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+          className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Question Sets</span>
@@ -305,20 +275,20 @@ export const SetEditorView: React.FC = () => {
           {/* AI Generator Trigger */}
           <button
             onClick={() => setIsAiModalOpen(true)}
-            className="flex items-center gap-2 px-4.5 py-2.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:brightness-110 text-white font-extrabold text-xs rounded-xl shadow-md shadow-purple-500/20 active:scale-95 transition-all border border-purple-400/40"
-            title="Generate a complete question set automatically using Gemini AI"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white font-extrabold text-xs rounded-xl shadow-md shadow-purple-600/20 active:scale-95 transition-all cursor-pointer"
+            title="Generate a question set automatically using Gemini AI"
           >
-            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-amber-300" />
             <span>GENERATE WITH AI</span>
           </button>
 
           {/* Import / Export Controls */}
-          <label className="cursor-pointer flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition-all active:scale-95">
+          <label className="cursor-pointer flex items-center gap-1.5 px-3.5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 transition-all active:scale-95">
             <Upload className="w-4 h-4 text-slate-500" />
-            <span>Import JSON/CSV</span>
+            <span>Import JSON</span>
             <input
               type="file"
-              accept=".json,.csv"
+              accept=".json"
               onChange={handleFileUpload}
               className="hidden"
             />
@@ -326,7 +296,7 @@ export const SetEditorView: React.FC = () => {
 
           <button
             onClick={handleExportJson}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 transition-all active:scale-95 cursor-pointer"
             title="Export Question Set as a JSON file"
           >
             <Download className="w-4 h-4 text-slate-500" />
@@ -335,7 +305,7 @@ export const SetEditorView: React.FC = () => {
 
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all ml-1 border border-emerald-400/40"
+            className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-600/25 active:scale-95 transition-all cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>SAVE QUESTION SET</span>
@@ -344,32 +314,32 @@ export const SetEditorView: React.FC = () => {
       </div>
 
       {/* Set Details Form Box */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
-        <h2 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-6">
+        <h2 className="text-xl font-extrabold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
           {editingSetId ? 'Edit Question Set Details' : 'Create New Question Set'}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">Set Title:</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1.5">Set Title:</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Science Vocabulary Unit 3"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-sky-500"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">Description:</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1.5">Description:</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe what students will practice in this set..."
                 rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:outline-hidden focus:border-sky-500"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>
@@ -377,28 +347,28 @@ export const SetEditorView: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">Subject:</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1.5">Subject:</label>
                 <input
                   type="text"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-hidden"
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">Grade Level:</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1.5">Grade Level:</label>
                 <input
                   type="text"
                   value={gradeLevel}
                   onChange={(e) => setGradeLevel(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-hidden"
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1.5">
                 Tags (comma separated):
               </label>
               <input
@@ -406,7 +376,7 @@ export const SetEditorView: React.FC = () => {
                 value={tagsInput}
                 onChange={(e) => setTagsInput(e.target.value)}
                 placeholder="math, addition, grade-3"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:outline-hidden"
+                className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
@@ -416,10 +386,10 @@ export const SetEditorView: React.FC = () => {
                 id="isPublicToggle"
                 checked={isPublic}
                 onChange={(e) => setIsPublic(e.target.checked)}
-                className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"
+                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
               />
-              <label htmlFor="isPublicToggle" className="text-xs font-semibold text-slate-700">
-                Publish to Shared Public Library for other teachers/SLPs
+              <label htmlFor="isPublicToggle" className="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                Publish to Shared Public Library for other teachers
               </label>
             </div>
           </div>
@@ -429,12 +399,12 @@ export const SetEditorView: React.FC = () => {
       {/* Questions List Editor */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-slate-900">
+          <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
             Questions List ({questions.length})
           </h3>
           <button
             onClick={handleAddQuestion}
-            className="flex items-center gap-1.5 px-4 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-xs rounded-xl border border-sky-200 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 font-bold text-xs rounded-xl border border-indigo-200 dark:border-indigo-800 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Question</span>
@@ -444,16 +414,16 @@ export const SetEditorView: React.FC = () => {
         {questions.map((q, idx) => (
           <div
             key={q.id || idx}
-            className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4 relative"
+            className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4 relative"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <span className="font-extrabold text-xs text-sky-600 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-100">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <span className="font-extrabold text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">
                 Question #{idx + 1}
               </span>
 
               <button
                 onClick={() => handleDeleteQuestion(idx)}
-                className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors"
+                className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg transition-colors cursor-pointer"
                 title="Delete question"
               >
                 <Trash2 className="w-4 h-4" />
@@ -462,33 +432,33 @@ export const SetEditorView: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-[11px] font-semibold text-slate-600 block mb-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
                   Question Prompt / Word:
                 </label>
                 <input
                   type="text"
                   value={q.promptText}
                   onChange={(e) => handleUpdateQuestion(idx, { promptText: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-hidden"
+                  className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-slate-600 block mb-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
                   Correct Answer:
                 </label>
                 <input
                   type="text"
                   value={q.answer}
                   onChange={(e) => handleUpdateQuestion(idx, { answer: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50/50 text-xs font-bold text-emerald-900 focus:outline-hidden"
+                  className="w-full px-4 py-2 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50/70 dark:bg-emerald-950/40 text-xs font-bold text-emerald-900 dark:text-emerald-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
             </div>
 
             {/* Multiple Choice Options */}
             <div>
-              <label className="text-[11px] font-semibold text-slate-600 block mb-1">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
                 Multiple Choice Choices (Optional):
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -503,7 +473,7 @@ export const SetEditorView: React.FC = () => {
                       handleUpdateQuestion(idx, { options: newOpts });
                     }}
                     placeholder={`Choice ${optIdx + 1}`}
-                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-800"
+                    className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white"
                   />
                 ))}
               </div>
@@ -511,15 +481,15 @@ export const SetEditorView: React.FC = () => {
 
             {/* Optional Hint */}
             <div>
-              <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                Teacher Hint / Articulation Note:
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
+                Teacher Hint / Articulation Guidance:
               </label>
               <input
                 type="text"
                 value={q.hint || ''}
                 onChange={(e) => handleUpdateQuestion(idx, { hint: e.target.value })}
                 placeholder="e.g. Rhymes with cat, tongue position guidance..."
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-700"
+                className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300"
               />
             </div>
           </div>
@@ -528,63 +498,63 @@ export const SetEditorView: React.FC = () => {
 
       {/* AI Question Generator Modal */}
       {isAiModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white rounded-2xl border border-slate-200 p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-purple-100 text-purple-700 rounded-xl">
-                  <Bot className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 rounded-2xl">
+                  <Bot className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-base text-slate-900">
-                    AI Question Set Generator
+                  <h3 className="font-extrabold text-base text-slate-900 dark:text-white">
+                    AI Curriculum Generator
                   </h3>
-                  <p className="text-xs text-slate-500">
-                    Enter any topic to instantly generate tailored question sets!
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Enter any learning objective to automatically generate questions!
                   </p>
                 </div>
               </div>
 
               <button
                 onClick={() => setIsAiModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 font-bold text-sm"
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Topic or Curriculum Objective:
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1.5">
+                  Topic or Learning Goal:
                 </label>
                 <input
                   type="text"
                   value={aiTopic}
                   onChange={(e) => setAiTopic(e.target.value)}
-                  placeholder="e.g. Photosynthesis, Grade 2 Subtraction, Sight Words..."
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                  placeholder="e.g. Photosynthesis, Grade 2 Subtraction..."
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-purple-500"
                 />
 
                 {/* Quick Topic Chips Suggestions */}
-                <div className="mt-2.5 space-y-1.5">
+                <div className="mt-3 space-y-1.5">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Quick Topic Suggestions:
+                    Quick Suggestions:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {[
                       '🧪 Photosynthesis',
                       '🔢 Multiplication Tables',
-                      '📖 Sight Words & Phonics',
-                      '🌍 World Capitals',
-                      '🪐 Solar System & Planets',
-                      '📐 Fractions & Decimals',
+                      '📖 Sight Words',
+                      '🌍 World Geography',
+                      '🪐 Solar System',
+                      '📐 Fractions',
                     ].map((chipTopic) => (
                       <button
                         key={chipTopic}
                         type="button"
                         onClick={() => setAiTopic(chipTopic.replace(/^[^\s]+\s/, ''))}
-                        className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 transition-colors"
+                        className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 cursor-pointer"
                       >
                         {chipTopic}
                       </button>
@@ -595,13 +565,13 @@ export const SetEditorView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Grade Level:
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1.5">
+                    Target Grade:
                   </label>
                   <select
                     value={aiGrade}
                     onChange={(e) => setAiGrade(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 bg-slate-50"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800"
                   >
                     <option>Kindergarten</option>
                     <option>Grade 1</option>
@@ -614,13 +584,13 @@ export const SetEditorView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1.5">
                     Question Count:
                   </label>
                   <select
                     value={aiCount}
                     onChange={(e) => setAiCount(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 bg-slate-50"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800"
                   >
                     <option value={3}>3 Questions</option>
                     <option value={5}>5 Questions</option>
@@ -631,16 +601,16 @@ export const SetEditorView: React.FC = () => {
               </div>
 
               {aiError && (
-                <p className="text-xs font-semibold text-rose-600 bg-rose-50 p-3 rounded-xl border border-rose-200">
+                <p className="text-xs font-semibold text-rose-600 bg-rose-50 dark:bg-rose-950/40 p-3 rounded-xl border border-rose-200 dark:border-rose-900/60">
                   {aiError}
                 </p>
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={() => setIsAiModalOpen(false)}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 Cancel
               </button>
@@ -648,7 +618,7 @@ export const SetEditorView: React.FC = () => {
               <button
                 onClick={handleGenerateAiSet}
                 disabled={aiLoading}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white font-black text-xs shadow-lg shadow-purple-500/30 transition-all active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-lg shadow-purple-600/30 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
               >
                 {aiLoading ? (
                   <>
@@ -658,7 +628,7 @@ export const SetEditorView: React.FC = () => {
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 text-amber-300" />
-                    <span>GENERATE QUESTION SET NOW</span>
+                    <span>GENERATE QUESTIONS</span>
                   </>
                 )}
               </button>
@@ -669,4 +639,3 @@ export const SetEditorView: React.FC = () => {
     </div>
   );
 };
-

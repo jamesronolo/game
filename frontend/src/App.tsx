@@ -15,6 +15,7 @@ import { MultiplayerLobby } from './components/multiplayer/MultiplayerLobby';
 import { HostLobbyView } from './components/multiplayer/HostLobbyView';
 import { CodingQuizView } from './components/coding-quiz/CodingQuizView';
 import { SchoolRecordsView } from './components/school-records/SchoolRecordsView';
+import { Gamepad2, Sparkles, Heart, ShieldCheck } from 'lucide-react';
 
 const MainContent: React.FC = () => {
   const {
@@ -43,10 +44,10 @@ const MainContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 text-slate-900 flex flex-col font-sans overflow-x-hidden">
+    <div className="min-h-screen w-full bg-slate-50/60 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 flex flex-col font-sans overflow-x-hidden selection:bg-indigo-500 selection:text-white">
       <Navbar />
 
-      <main className="flex-1 w-full px-2 sm:px-4 lg:px-6 xl:px-8">
+      <main className="flex-1 w-full px-2 sm:px-4 lg:px-6 xl:px-8 py-2">
         {activeTab === 'home' && <HomeView />}
         {activeTab === 'games' && <GamesCatalogView />}
         {activeTab === 'sets' && <QuestionSetsView />}
@@ -62,24 +63,48 @@ const MainContent: React.FC = () => {
         {activeTab === 'school-records' && <SchoolRecordsView />}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 mt-6 py-6 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-800">Quiz Game</span>
-            <span>• University Capstone EdTech Project (Inspired by Academoo)</span>
+      {/* Professional Modern Footer */}
+      <footer className="mt-12 border-t border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md py-8 text-xs text-slate-500 dark:text-slate-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-500 to-sky-400 flex items-center justify-center text-white shadow-xs">
+                <Gamepad2 className="w-3.5 h-3.5" />
+              </div>
+              <span className="font-extrabold text-sm text-slate-800 dark:text-slate-200 tracking-tight">Quiz Game</span>
+            </div>
+            <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
+            <p className="text-slate-500 dark:text-slate-400">
+              Interactive EdTech Learning Platform • University Capstone Project
+            </p>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-600 font-semibold">
-            <button onClick={() => setActiveTab('teacher-tools')} className="hover:underline">
-              Free Teacher Tools
+          <div className="flex flex-wrap items-center justify-center gap-5 text-slate-600 dark:text-slate-300 font-medium">
+            <button onClick={() => setActiveTab('games')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+              {gamesCatalog.length > 0 ? `${gamesCatalog.length} Game Engines` : 'Games'}
             </button>
-            <button onClick={() => setActiveTab('games')} className="hover:underline">
-              {gamesCatalog.length > 0 ? `${gamesCatalog.length} Games` : 'Games'} Catalog
+            <button onClick={() => setActiveTab('sets')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+              Question Sets
             </button>
-            <button onClick={() => setActiveTab('progress')} className="hover:underline">
-              Gradebook Analytics
+            <button onClick={() => setActiveTab('teacher-tools')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+              Teacher Tools
             </button>
+            <button onClick={() => setActiveTab('coding-quiz')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+              Programming Arena
+            </button>
+            <button onClick={() => setActiveTab('progress')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+              Analytics & Gradebook
+            </button>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pt-5 border-t border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400 dark:text-slate-500">
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Ad-free • Student privacy first • Real-time multiplayer enabled</span>
+          </div>
+          <div>
+            Built with React 18, Tailwind CSS, Vite & Node.js
           </div>
         </div>
       </footer>
