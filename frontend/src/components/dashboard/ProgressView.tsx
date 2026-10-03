@@ -286,18 +286,18 @@ export const ProgressView: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 select-none">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl border-2 border-indigo-900/80 p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden">
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 rounded-3xl border border-slate-800 p-6 sm:p-10 text-white shadow-2xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 rounded-full text-xs font-black uppercase tracking-widest">
+              <span className="px-3 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full text-xs font-bold uppercase tracking-wider">
                 Academic Gradebook & Learning Analytics
               </span>
-              <span className="text-xs font-bold text-slate-300">Live Database Synced</span>
+              <span className="text-xs font-semibold text-slate-300">• Live Database Synced</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white flex items-center gap-3 tracking-tight">
-              <BarChart3 className="w-9 h-9 text-indigo-400" />
-              <span>Student Performance & Progress</span>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white flex items-center gap-3 tracking-tight">
+              <BarChart3 className="w-8 h-8 text-indigo-400" />
+              <span>Student Performance & Analytics</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
               Track mastery rates, review question breakdowns, inspect answers for interactive games and programming tests, and export gradebook records!
@@ -396,9 +396,9 @@ export const ProgressView: React.FC = () => {
       />
 
       {/* Filter Buttons, Search & Gradebook Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs space-y-4">
         {/* Filter Toolbar & Search Bar */}
-        <div className="p-6 border-b border-slate-200 dark:border-slate-800 space-y-4">
+        <div className="p-6 border-b border-slate-200/80 dark:border-slate-800 space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h2 className="font-extrabold text-lg text-slate-900 dark:text-white">Submission Log & Gradebook</h2>

@@ -20,16 +20,19 @@ import {
   Volume2,
   Flag,
   Dice5,
-  Sun,
-  Moon,
   Code2,
+  Crown,
+  Key,
+  ArrowRight,
+  Flame,
 } from 'lucide-react';
 import { BackendHealth, fetchBackendHealth } from '../../services/api';
 
 export const HomeView: React.FC = () => {
-  const { setActiveTab, gamesCatalog, questionSets, launchGameWithSet, darkMode, toggleDarkMode } = useEduPlay();
+  const { setActiveTab, gamesCatalog, questionSets, launchGameWithSet } = useEduPlay();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [backendHealth, setBackendHealth] = useState<BackendHealth | null>(null);
+  const [quickRoomCode, setQuickRoomCode] = useState('');
 
   useEffect(() => {
     fetchBackendHealth().then(setBackendHealth).catch(() => setBackendHealth(null));
@@ -39,285 +42,248 @@ export const HomeView: React.FC = () => {
 
   const faqs = [
     {
-      question: 'What makes this different from a normal quiz app?',
+      question: 'What makes Quiz Game different from traditional quiz tools?',
       answer:
-        'It combines custom question sets, classroom games, teacher tools, assignments, progress tracking, and rewards in one student-friendly experience.',
+        'Instead of boring static quizzes, Quiz Game allows you to take any question set and instantly play it across 8 distinct video game formats: Wheel Spin, Naval Battles, Phonics Spelling, Arcade Claw, Magic Potions, Flashcards, and more! Your question data is completely decoupled from the game mechanics.',
     },
     {
-      question: 'Can I use it without an account?',
+      question: 'Can teachers and students use the platform without an account?',
       answer:
-        'Yes. Teachers can jump into free classroom tools immediately, and the platform is designed to feel simple and ad-free for students.',
+        'Yes! The platform is designed for zero-friction classroom use. Teachers can project smartboard utilities immediately, and students can enter 4-digit room codes without passwords or ads.',
     },
     {
-      question: 'Does it work for SLPs and parents too?',
+      question: 'Is it suitable for Speech-Language Pathologists (SLPs) and special ed?',
       answer:
-        'Absolutely. The same question sets can be reused for articulation, vocabulary, spelling, and review activities across different game formats.',
+        'Absolutely. Custom word sets, articulation drills, phonics exercises, and high-contrast flashcards are built right into the curriculum editor and game engines.',
+    },
+    {
+      question: 'Does it support real-time classroom multiplayer?',
+      answer:
+        'Yes! Teachers can host live lobbies from the Host Room panel, and students join instantly using room codes. Scores sync in real-time with live rank leaderboards.',
     },
   ];
 
+  const handleQuickJoinSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (quickRoomCode.trim()) {
+      setActiveTab('multiplayer-join');
+    }
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-8 lg:space-y-10">
-      <section className="relative isolate min-h-[520px] overflow-hidden rounded-2xl bg-[#07101b] text-white shadow-xl sm:min-h-[570px]">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-12">
+      {/* ═══════════════ HERO BANNER ═══════════════ */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-[#0e172a] to-[#1e1b4b] text-white shadow-2xl border border-slate-800/80">
+        {/* Ambient background glows */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+        
         {featuredGame?.imageUrl && (
-          <img src={featuredGame.imageUrl} alt="Friendly astronaut exploring a star-filled learning universe" className="absolute inset-0 -z-20 h-full w-full object-cover object-center" />
+          <img
+            src={featuredGame.imageUrl}
+            alt="Classroom gaming adventure banner"
+            className="absolute right-0 top-0 bottom-0 w-full lg:w-1/2 h-full object-cover object-center opacity-25 lg:opacity-35 pointer-events-none mix-blend-luminosity"
+          />
         )}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#07101b] via-[#07101b]/85 to-[#07101b]/10" />
-        <div className="flex min-h-[520px] flex-col justify-between p-6 sm:min-h-[570px] sm:p-10 lg:p-14">
-          <div className="flex items-center justify-between gap-4">
-            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase text-cyan-100">
-              <Sparkles className="h-4 w-4 text-amber-300" /> EduPlay Arcade
+        <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/90 to-transparent" />
+
+        <div className="relative z-10 p-6 sm:p-10 lg:p-14 max-w-3xl flex flex-col justify-between min-h-[500px]">
+          {/* Top Status & Brand Chip */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-bold text-sky-200">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-spin" />
+              <span>Interactive EdTech Arcade Platform</span>
             </div>
-            <div className="flex items-center gap-3">
-              <span className={`inline-flex items-center gap-2 text-xs font-bold ${backendHealth ? 'text-emerald-200' : 'text-rose-200'}`} role="status">
-                <span className={`h-2 w-2 rounded-full ${backendHealth ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-                {backendHealth ? `Backend ${backendHealth.db === 'connected' ? 'connected' : 'online · demo data'}` : 'Backend offline'}
+
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md border ${
+                backendHealth
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                  : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${backendHealth ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
+                {backendHealth ? (backendHealth.db === 'connected' ? 'Server Connected' : 'Server Online') : 'Offline Mode'}
               </span>
-              <button onClick={toggleDarkMode} className="grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-black/25 text-amber-200 transition hover:bg-white/15" title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
-                {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </div>
+          </div>
+
+          {/* Headline & Value Statement */}
+          <div className="py-8 sm:py-10 space-y-4">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-indigo-400 bg-indigo-950/60 px-3 py-1 rounded-lg border border-indigo-800/60 inline-block">
+              One Question Set • 8 Interactive Ways to Play
+            </span>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.08] text-white">
+              Turn Any Curriculum Into an <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400">Arcade Adventure</span>.
+            </h1>
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl">
+              Build custom question sets or choose from the shared library. Launch games instantly on smartboards, tablets, or laptops with real-time multiplayer scoring and sticker rewards.
+            </p>
+
+            {/* CTAs */}
+            <div className="pt-4 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setActiveTab('games')}
+                className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-600 to-purple-600 hover:brightness-110 text-white font-extrabold text-sm shadow-xl shadow-indigo-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2 cursor-pointer"
+              >
+                <Gamepad2 className="w-4 h-4" />
+                <span>Explore 8 Game Engines</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('sets')}
+                className="px-5 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-sm backdrop-blur-md transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Question Sets Studio</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('coding-quiz')}
+                className="px-4 py-3.5 rounded-2xl bg-violet-500/20 hover:bg-violet-500/30 border border-violet-400/40 text-violet-200 font-bold text-sm transition-all flex items-center gap-2 cursor-pointer"
+                title="Try Programming Test Arena"
+              >
+                <Code2 className="w-4 h-4 text-amber-300" />
+                <span className="hidden sm:inline">Programming Arena</span>
               </button>
             </div>
           </div>
 
-          <div className="max-w-xl py-12 sm:py-16">
-            <p className="text-xs font-black uppercase text-amber-300">One question set. Eight ways to play.</p>
-            <h1 className="mt-3 font-display text-4xl font-black leading-[1.04] sm:text-6xl">Learning takes off.</h1>
-            <p className="mt-5 max-w-lg text-sm leading-7 text-slate-200 sm:text-base">Choose a world, bring your questions, and start a classroom adventure. Your progress and rewards follow along.</p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <button onClick={() => setActiveTab('games')} className="inline-flex items-center gap-2 rounded-lg bg-amber-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-amber-200">
-                <Gamepad2 className="h-4 w-4" /> Explore the games
-              </button>
-              <button onClick={() => setActiveTab('sets')} className="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/20">
-                <BookOpen className="h-4 w-4" /> Question sets
-              </button>
-              <button onClick={() => setActiveTab('coding-quiz')} className="grid h-11 w-11 place-items-center rounded-lg border border-white/30 bg-white/10 text-white transition hover:bg-white/20" title="Programming quiz" aria-label="Programming quiz">
-                <Code2 className="h-4 w-4" />
-              </button>
+          {/* Quick Metrics Bar */}
+          <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-300">
+            <div className="flex items-center gap-5">
+              <span>🎮 <strong className="text-white">{gamesCatalog.length}</strong> Game Worlds</span>
+              <span className="text-slate-600">•</span>
+              <span>📚 <strong className="text-white">{questionSets.length}</strong> Question Sets</span>
+              <span className="text-slate-600">•</span>
+              <span>⚡ <strong className="text-white">Real-Time</strong> Socket Multiplayer</span>
             </div>
-          </div>
 
-          <div className="flex flex-wrap items-end justify-between gap-3 border-t border-white/20 pt-4">
-            <p className="text-xs font-semibold text-slate-200">{gamesCatalog.length} game worlds <span className="px-1 text-amber-300">/</span> {questionSets.length} question sets</p>
-            <button onClick={() => setActiveTab('host-lobby')} className="inline-flex items-center gap-2 text-xs font-bold text-cyan-100 transition hover:text-white">
-              <Users className="h-4 w-4" /> Host a live room <ChevronRight className="h-4 w-4" />
+            <button
+              onClick={() => setActiveTab('host-lobby')}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-300 hover:text-white transition-colors"
+            >
+              <Crown className="w-3.5 h-3.5 text-amber-400" /> Host Live Classroom Session <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       </section>
 
-      {/* Live Multiplayer Quick Join Banner */}
-      <section className="rounded-3xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-amber-300/30">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-2xl shadow-inner">
-            ⚡
+      {/* ═══════════════ LIVE QUICK-JOIN ARENA BANNER ═══════════════ */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 p-6 sm:p-8 text-white shadow-xl border border-indigo-700/60">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg shadow-amber-500/30 shrink-0">
+              ⚡
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-black uppercase tracking-wider">
+                  Live Classroom Arena
+                </span>
+                <span className="text-xs text-indigo-200">Room Code System</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-white">
+                Joining a Live Classroom Quiz?
+              </h2>
+              <p className="text-xs sm:text-sm text-indigo-200">
+                Enter your teacher's 4-digit code to jump directly into the live leaderboard!
+              </p>
+            </div>
           </div>
-          <div>
-            <span className="inline-flex items-center gap-1 bg-white/20 text-yellow-100 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full tracking-wider mb-1">
-              <Sparkles className="w-3 h-3 text-yellow-300" /> Real-Time Multiplayer
-            </span>
-            <h2 className="text-xl sm:text-2xl font-black">Joining a Live Classroom Game?</h2>
-            <p className="text-xs sm:text-sm text-amber-100 mt-0.5">
-              Enter your teacher's 4-digit room code to join live scoreboards instantly!
-            </p>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button
-            onClick={() => setActiveTab('multiplayer-join')}
-            className="w-full sm:w-auto px-6 py-3.5 bg-white text-slate-950 hover:bg-amber-50 font-black text-sm rounded-2xl shadow-lg transition flex items-center justify-center gap-2 whitespace-nowrap"
-          >
-            Enter Game Code <ChevronRight className="w-4 h-4 text-slate-950" />
-          </button>
-          <button
-            onClick={() => setActiveTab('host-lobby')}
-            className="hidden lg:flex px-5 py-3.5 bg-slate-950/40 hover:bg-slate-950/60 text-white font-bold text-sm rounded-2xl border border-white/20 transition items-center gap-2 whitespace-nowrap"
-          >
-            Host Room
-          </button>
+          {/* Quick Enter Code Field & Action */}
+          <form onSubmit={handleQuickJoinSubmit} className="flex items-center gap-2.5 w-full lg:w-auto">
+            <div className="relative flex-1 lg:w-48">
+              <Key className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+              <input
+                type="text"
+                maxLength={6}
+                value={quickRoomCode}
+                onChange={(e) => setQuickRoomCode(e.target.value.toUpperCase())}
+                placeholder="ROOM CODE"
+                className="w-full pl-9 pr-3 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-indigo-200/60 text-sm font-mono font-bold tracking-widest uppercase focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+              />
+            </div>
+            <button
+              type="submit"
+              onClick={() => setActiveTab('multiplayer-join')}
+              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xs sm:text-sm shadow-md transition-all hover:scale-105 active:scale-95 whitespace-nowrap flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>Join Room</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
         </div>
       </section>
 
+      {/* ═══════════════ VALUE PILLARS GRID ═══════════════ */}
       <section className="grid gap-6 md:grid-cols-3">
         {[
-          { title: 'One set, many games', body: 'Reuse the same questions across different playful formats without rebuilding everything.', icon: Zap },
-          { title: 'Built for classroom flow', body: 'Assign, review, and reward without adding complexity for teachers or students.', icon: ShieldCheck },
-          { title: 'Works for every learner', body: 'Teachers, SLPs, and parents can all use the same simple structure.', icon: GraduationCap },
+          {
+            title: 'One Set, 8 Game Mechanics',
+            body: 'Write your questions once. Run them through Wheel Spin, Naval Battles, Phonics Alien, Crane Claws, and more with zero re-entry.',
+            icon: Zap,
+            color: 'from-blue-500 to-indigo-600',
+            bgGlow: 'bg-blue-50 dark:bg-blue-950/30',
+          },
+          {
+            title: 'Frictionless Classroom Flow',
+            body: 'Launch instant random student pickers, 3D dice, star behavior charts, and noise meters without forcing students to log in.',
+            icon: ShieldCheck,
+            color: 'from-emerald-500 to-teal-600',
+            bgGlow: 'bg-emerald-50 dark:bg-emerald-950/30',
+          },
+          {
+            title: 'Gamified Sticker Rewards',
+            body: 'Students earn tickets for correct answers and unlock collectible mystery stickers across Legendary, Epic, Rare, and Common rarities.',
+            icon: Award,
+            color: 'from-amber-500 to-orange-600',
+            bgGlow: 'bg-amber-50 dark:bg-amber-950/30',
+          },
         ].map((item) => {
           const Icon = item.icon;
           return (
-            <div key={item.title} className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
-                <Icon className="h-5 w-5" />
+            <div
+              key={item.title}
+              className="card-interactive rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 p-7 shadow-xs backdrop-blur-md flex flex-col justify-between"
+            >
+              <div>
+                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${item.color} flex items-center justify-center text-white shadow-md shadow-indigo-500/10 mb-5`}>
+                  <Icon className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                  {item.body}
+                </p>
               </div>
-              <h3 className="mt-4 text-lg font-black text-slate-900">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{item.body}</p>
             </div>
           );
         })}
       </section>
 
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm sm:p-8 lg:p-10">
-        <div className="flex items-center justify-between gap-3">
+      {/* ═══════════════ FEATURED GAMES SHOWCASE ═══════════════ */}
+      <section className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">How it works</p>
-            <h2 className="mt-2 text-2xl font-black text-slate-900">Pick or create questions, choose a game, then play and track.</h2>
+            <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+              Interactive Arcade
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Featured Game Worlds
+            </h2>
           </div>
-          <button onClick={() => setActiveTab('sets')} className="hidden rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 sm:inline-flex">
-            Create a set
+          <button
+            onClick={() => setActiveTab('games')}
+            className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+          >
+            <span>Browse All {gamesCatalog.length} Engines</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="mt-8 grid gap-5 lg:grid-cols-3">
-          {[
-            { title: 'Pick or create questions', body: 'Build question sets with text, images, or audio-ready content that can be reused later.', icon: BookOpenCheck },
-            { title: 'Choose a game', body: 'Switch between fun classroom gameplay modes like wheel spin, ship battle, and flashcards.', icon: Gamepad2 },
-            { title: 'Play and track', body: 'Assign activities, monitor results, and reward students as they progress.', icon: MonitorSmartphone },
-          ].map((step, index) => {
-            const Icon = step.icon;
-            return (
-              <div key={step.title} className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-6">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="mt-4 text-sm font-bold uppercase tracking-[0.25em] text-sky-600">Step {index + 1}</div>
-                <h3 className="mt-2 text-lg font-black text-slate-900">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{step.body}</p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="rounded-[2rem] border border-slate-200 bg-slate-950 p-8 text-white shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-sky-300">Built for everyone who teaches</p>
-          <h2 className="mt-3 text-2xl font-black">Teachers, SLPs, and home learners all get their own path.</h2>
-          <div className="mt-6 space-y-4">
-            {[
-              ['Teachers', 'Run engaging classroom activities, assign homework, and track student progress with confidence.'],
-              ['SLPs', 'Use custom word lists for articulation, vocabulary, and review through playful game formats.'],
-              ['Parents', 'Share practice activities on any device without heavy setup or account friction.'],
-            ].map(([title, body]) => (
-              <div key={title} className="rounded-2xl border border-white/10 bg-white/10 p-4">
-                <h3 className="text-base font-black">{title}</h3>
-                <p className="mt-1 text-sm leading-6 text-slate-300">{body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-          <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">
-            <Wrench className="h-4 w-4" />
-            Free teacher tools
-          </div>
-          <h2 className="mt-3 text-2xl font-black text-slate-900">No login needed for instant classroom tools.</h2>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {[
-              { label: 'Random Name Picker', icon: Users },
-              { label: 'Star Chart', icon: Award },
-              { label: 'Student Grouper', icon: Users },
-              { label: 'Virtual Dice', icon: Dice5 },
-              { label: 'Behavior Race', icon: Flag },
-              { label: 'Noise Meter', icon: Volume2 },
-            ].map((tool) => {
-              const Icon = tool.icon;
-              return (
-                <button key={tool.label} onClick={() => setActiveTab('teacher-tools')} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:bg-sky-50">
-                  <span className="flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-sky-600" />
-                    {tool.label}
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-slate-400" />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-sky-50 to-emerald-50 p-7 shadow-sm sm:p-8 lg:p-10">
-        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">Play anywhere</p>
-            <h2 className="mt-3 text-2xl font-black text-slate-900">Works on desktop, tablet, and mobile without extra downloads.</h2>
-            <p className="mt-3 text-sm leading-7 text-slate-600">The experience stays lightweight so it can run on a smartboard, a classroom tablet, or a student device with the same polished feel.</p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-sm text-emerald-700">Responsive layout</span>
-              <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-sm text-emerald-700">Touch-friendly controls</span>
-              <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-sm text-emerald-700">No install required</span>
-            </div>
-          </div>
-
-          <div className="rounded-[1.8rem] border border-slate-200 bg-slate-950 p-5 text-white">
-            <div className="rounded-[1.3rem] border border-white/10 bg-slate-900 p-5">
-              <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-sky-500/20 p-2 text-sky-300">
-                  <MonitorSmartphone className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black">Cross-device classroom experience</h3>
-                  <p className="text-sm text-slate-400">Smartboard, tablet, phone, or laptop</p>
-                </div>
-              </div>
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                {['Desktop', 'Tablet', 'Phone'].map((device) => (
-                  <div key={device} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center text-sm font-semibold text-slate-200">
-                    {device}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm sm:p-8 lg:p-10">
-        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">
-          <MessageCircleQuestion className="h-4 w-4" />
-          Frequently asked questions
-        </div>
-        <div className="mt-6 space-y-3">
-          {faqs.map((faq, index) => {
-            const isOpen = openFaq === index;
-            return (
-              <div key={faq.question} className="rounded-2xl border border-slate-200 bg-slate-50">
-                <button
-                  onClick={() => setOpenFaq(isOpen ? null : index)}
-                  className="flex w-full items-center justify-between px-4 py-4 text-left"
-                >
-                  <span className="text-sm font-black text-slate-900">{faq.question}</span>
-                  {isOpen ? <ChevronDown className="h-4 w-4 text-slate-500" /> : <ChevronRight className="h-4 w-4 text-slate-500" />}
-                </button>
-                {isOpen && <p className="px-4 pb-4 text-sm leading-7 text-slate-600">{faq.answer}</p>}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="rounded-[2rem] border border-slate-200 bg-slate-950 p-8 text-center text-white shadow-sm sm:p-10">
-        <h2 className="text-2xl font-black sm:text-3xl">Ready to build a classroom game experience that feels modern and fun?</h2>
-        <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-300">This version brings the main feel of the reference product into your React + Tailwind + Vite app with a stronger landing experience, clearer navigation, and polished classroom-focused sections.</p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <button onClick={() => setActiveTab('games')} className="rounded-2xl bg-sky-500 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-sky-400">
-            Start exploring the games
-          </button>
-          <button onClick={() => setActiveTab('teacher-tools')} className="rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
-            Try the teacher tools
-          </button>
-        </div>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-black text-slate-900">Featured Games Catalog</h2>
-          <button onClick={() => setActiveTab('games')} className="text-sm font-semibold text-sky-600 hover:underline">
-            View all games →
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {gamesCatalog.slice(0, 4).map((game) => (
             <div
               key={game.id}
@@ -325,29 +291,214 @@ export const HomeView: React.FC = () => {
                 const firstSet = questionSets[0];
                 if (firstSet) launchGameWithSet(game.slug, firstSet.id);
               }}
-              className="cursor-pointer rounded-[1.4rem] border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+              className="group card-interactive cursor-pointer rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 overflow-hidden shadow-xs hover:border-indigo-400 dark:hover:border-indigo-500 transition-all flex flex-col justify-between"
             >
-              <div className="relative flex h-36 items-end rounded-[1.1rem] bg-slate-900 p-3 text-white overflow-hidden">
+              <div className="relative h-44 bg-slate-900 overflow-hidden">
                 {game.imageUrl && (
                   <img
                     src={game.imageUrl}
                     alt={game.name}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-300"
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                <div className="relative z-10 rounded-full border border-white/20 bg-slate-900/70 backdrop-blur-xs px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.25em]">
-                  {game.badge}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
+                <div className="absolute top-3 left-3">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-950/70 backdrop-blur-md text-white border border-white/20">
+                    {game.badge}
+                  </span>
+                </div>
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-white/90">
+                    Grade {game.minGrade}
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-300 bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-md">
+                    {game.mechanic}
+                  </span>
                 </div>
               </div>
-              <h3 className="mt-4 text-base font-black text-slate-900">{game.name}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{game.description}</p>
-              <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-sm font-semibold text-sky-600">
-                <span>Play game</span>
-                <Play className="h-4 w-4" />
+
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                <div>
+                  <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    {game.name}
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                    {game.description}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                  <span>Play Engine</span>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                </div>
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ═══════════════ HOW IT WORKS (3-STEP PROGRESSION) ═══════════════ */}
+      <section className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 p-8 sm:p-10 shadow-xs backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+              Seamless Workflow
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              From Concept to Gameplay in 3 Steps
+            </h2>
+          </div>
+          <button
+            onClick={() => setActiveTab('sets')}
+            className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 transition-all self-start sm:self-auto"
+          >
+            Create Question Set
+          </button>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {[
+            {
+              step: '01',
+              title: 'Build or Import Questions',
+              body: 'Craft multiple-choice lists with optional hints, tags, images, or use the integrated AI curriculum generator.',
+              icon: BookOpenCheck,
+            },
+            {
+              step: '02',
+              title: 'Pick Any Game Mechanic',
+              body: 'Choose from 8 distinct game worlds — Wheel Spin, Naval Battles, Phonics Spelling, or Arcade Claw — without reformatting.',
+              icon: Gamepad2,
+            },
+            {
+              step: '03',
+              title: 'Play, Analyze & Reward',
+              body: 'Project on a smartboard or launch multiplayer rooms. Review student accuracy in real-time gradebook analytics.',
+              icon: MonitorSmartphone,
+            },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.step}
+                className="relative rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-6 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-md shadow-indigo-600/20">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="font-mono text-2xl font-black text-slate-300 dark:text-slate-700">
+                      {item.step}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                    {item.body}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ═══════════════ FREE SMARTBOARD TOOLS SHOWCASE ═══════════════ */}
+      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-br from-indigo-950 to-slate-950 p-8 sm:p-10 text-white shadow-xl flex flex-col justify-between">
+          <div className="space-y-4">
+            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 inline-block">
+              Dedicated Educator Utilities
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+              Classroom Projector Tools Ready in One Click.
+            </h2>
+            <p className="text-sm leading-relaxed text-slate-300">
+              No account, no student app download, and zero setup friction. Open student spinners, group generators, and noise meters directly on smartboards.
+            </p>
+          </div>
+
+          <div className="pt-8">
+            <button
+              onClick={() => setActiveTab('teacher-tools')}
+              className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-950 font-black text-xs sm:text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Wrench className="w-4 h-4 text-indigo-600" />
+              <span>Launch Teacher Tools Suite</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 p-8 shadow-xs backdrop-blur-md">
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-4">
+            <Wrench className="w-4 h-4" />
+            <span>Instant Classroom Tools</span>
+          </div>
+
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {[
+              { label: 'Random Name Picker', icon: Users },
+              { label: 'Star Chart & Behavior', icon: Award },
+              { label: 'Student Grouper', icon: Users },
+              { label: 'Virtual 3D Dice', icon: Dice5 },
+              { label: 'Behavior Race Track', icon: Flag },
+              { label: 'Noise Level Monitor', icon: Volume2 },
+            ].map((tool) => {
+              const Icon = tool.icon;
+              return (
+                <button
+                  key={tool.label}
+                  onClick={() => setActiveTab('teacher-tools')}
+                  className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-all cursor-pointer"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Icon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    <span>{tool.label}</span>
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ FREQUENTLY ASKED QUESTIONS ═══════════════ */}
+      <section className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 p-8 sm:p-10 shadow-xs backdrop-blur-md">
+        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-6">
+          <MessageCircleQuestion className="w-4 h-4" />
+          <span>Frequently Asked Questions</span>
+        </div>
+
+        <div className="space-y-3">
+          {faqs.map((faq, index) => {
+            const isOpen = openFaq === index;
+            return (
+              <div
+                key={faq.question}
+                className="rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 overflow-hidden transition-colors"
+              >
+                <button
+                  onClick={() => setOpenFaq(isOpen ? null : index)}
+                  className="flex w-full items-center justify-between p-4 sm:p-5 text-left font-bold text-xs sm:text-sm text-slate-900 dark:text-white cursor-pointer"
+                >
+                  <span>{faq.question}</span>
+                  {isOpen ? (
+                    <ChevronDown className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                  )}
+                </button>
+                {isOpen && (
+                  <div className="px-5 pb-5 pt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300 border-t border-slate-100 dark:border-slate-800/60">
+                    {faq.answer}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>

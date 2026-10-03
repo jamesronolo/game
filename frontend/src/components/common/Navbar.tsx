@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useEduPlay } from "../../context/EduPlayContext";
-import { UserRole } from "../../types";
 import {
   Gamepad2, BookOpen, Wrench, BarChart3, Award, Crown,
   Volume2, VolumeX, ClipboardList, Sun, Moon, Code2,
   GraduationCap, Users, Menu, X, Sparkles, School,
-  Lock, Eye, EyeOff, AlertCircle, KeyRound,
+  Lock, Eye, EyeOff, AlertCircle, KeyRound, ArrowRight,
+  Shield, CheckCircle2,
 } from "lucide-react";
 
 export const Navbar: React.FC = () => {
@@ -39,7 +39,7 @@ export const Navbar: React.FC = () => {
       setShowTeacherAuthModal(false);
       switchRole("teacher");
     } else {
-      setAuthError("Invalid username or password. Please try again.");
+      setAuthError("Invalid teacher credentials. (Default: teacher / teacher123)");
     }
   };
 
@@ -49,162 +49,91 @@ export const Navbar: React.FC = () => {
   const isStudent = currentUser.role === "student";
 
   const allNavItems = [
-    { id: "games",          label: "Games",           icon: Gamepad2,      roles: ["teacher","student"] },
+    { id: "games",          label: "Game Engines",     icon: Gamepad2,      roles: ["teacher","student"] },
     { id: "coding-quiz",    label: "Programming",     icon: Code2,         roles: ["teacher","student"], badge: "New" },
     { id: "sets",           label: "Question Sets",   icon: BookOpen,      roles: ["teacher","student"] },
-    { id: "teacher-tools",  label: "Tools",           icon: Wrench,        roles: ["teacher"],           badge: "Free" },
+    { id: "teacher-tools",  label: "Teacher Tools",   icon: Wrench,        roles: ["teacher"],           badge: "Free" },
     { id: "assignments",    label: "Assignments",     icon: ClipboardList, roles: ["teacher"] },
     { id: "school-records", label: "School Records",  icon: School,        roles: ["teacher"] },
-    { id: "progress",       label: "Progress",        icon: BarChart3,     roles: ["teacher","student"] },
-    { id: "rewards",        label: "Rewards",         icon: Award,         roles: ["teacher","student"], count: rewards.ticketsEarned },
+    { id: "progress",       label: "Analytics",       icon: BarChart3,     roles: ["teacher","student"] },
+    { id: "rewards",        label: "Rewards & Shop",  icon: Award,         roles: ["teacher","student"], count: rewards.ticketsEarned },
   ];
 
   const navItems = allNavItems.filter((i) => i.roles.includes(currentUser.role));
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/90 dark:bg-[#0c1220]/90 border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-colors duration-200">
 
-      {/* ═══════════ ROW 1 — Brand / Role / Controls ═══════════ */}
-      <div className="max-w-screen-2xl mx-auto px-3 sm:px-5">
-        <div className="flex items-center h-12 gap-2 sm:gap-3">
+      {/* ═══════════ MAIN TOP BAR ═══════════ */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6">
+        <div className="flex items-center justify-between h-16 gap-3">
 
-          {/* Logo */}
-          <button
-            onClick={() => setActiveTab("home")}
-            className="flex items-center gap-2 shrink-0 group"
-          >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600
-              flex items-center justify-center text-white shadow-sm
-              group-hover:scale-105 transition-transform duration-200">
-              <Gamepad2 className="w-4 h-4" />
-            </div>
-            <div className="hidden sm:block leading-none">
-              <div className="flex items-center gap-1">
-                <span className="font-extrabold text-sm tracking-tight
-                  bg-gradient-to-r from-indigo-700 via-sky-600 to-purple-600
-                  dark:from-sky-300 dark:to-indigo-300 bg-clip-text text-transparent">
-                  Quiz Game
+          {/* Left: Brand Logo & Title */}
+          <div className="flex items-center gap-4 shrink-0">
+            <button
+              onClick={() => setActiveTab("home")}
+              className="flex items-center gap-2.5 group focus:outline-hidden"
+              title="Return to Home"
+            >
+              <div className="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-sky-400 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 group-hover:shadow-indigo-500/30 transition-all duration-200">
+                <Gamepad2 className="w-5 h-5 transition-transform group-hover:rotate-6" />
+                <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500"></span>
                 </span>
-                {isPro && (
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full
-                    text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-300">
-                    <Crown className="w-2.5 h-2.5" /> PRO
+              </div>
+              <div className="text-left leading-tight">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-extrabold text-base tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-800 dark:from-white dark:via-sky-200 dark:to-indigo-200 bg-clip-text text-transparent">
+                    Quiz Game
                   </span>
-                )}
+                  {isPro && (
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-xs">
+                      <Crown className="w-2.5 h-2.5 fill-current" /> PRO
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 tracking-wider uppercase">
+                  Classroom Arcade
+                </p>
               </div>
-              <p className="text-[9px] text-slate-400 tracking-wide">Interactive Learning</p>
-            </div>
-          </button>
-
-          {/* Role Switcher pill (Swapped: Student first, Teacher second) */}
-          <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800
-            rounded-xl p-0.5 border border-slate-200 dark:border-slate-700 shrink-0">
-            {/* 1. Student button */}
-            <button
-              id="role-student-btn"
-              onClick={() => switchRole("student")}
-              title="Student view"
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-[10px] text-[11px] font-bold
-                transition-all duration-200
-                ${isStudent
-                  ? "bg-emerald-500 text-white shadow"
-                  : "text-slate-500 hover:text-emerald-600 hover:bg-white dark:hover:bg-slate-700"}`}
-            >
-              <Users className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">Student</span>
             </button>
 
-            {/* 2. Teacher button (with password protection) */}
-            <button
-              id="role-teacher-btn"
-              onClick={handleTeacherClick}
-              title={isTeacher ? "Teacher view" : "Teacher view (Password required)"}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-[10px] text-[11px] font-bold
-                transition-all duration-200
-                ${isTeacher
-                  ? "bg-indigo-600 text-white shadow"
-                  : "text-slate-500 hover:text-indigo-600 hover:bg-white dark:hover:bg-slate-700"}`}
-            >
-              <GraduationCap className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">Teacher</span>
-              {!isTeacher && <Lock className="w-2.5 h-2.5 ml-0.5 opacity-60 text-slate-400" />}
-            </button>
-          </div>
-
-          {/* Flex spacer */}
-          <div className="flex-1 min-w-0" />
-
-          {/* User identity (md+) */}
-          <div className="hidden md:flex items-center gap-1.5 shrink-0">
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 shrink-0
-              ${isTeacher ? "bg-indigo-100 text-indigo-700 border-indigo-300" : "bg-emerald-100 text-emerald-700 border-emerald-300"}`}>
-              {currentUser.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="text-[10px] leading-tight">
-              <div className="font-bold text-slate-800 dark:text-slate-100 truncate max-w-[90px]">
-                {currentUser.name}
-              </div>
-              <div className={`font-semibold capitalize ${isTeacher ? "text-indigo-500" : "text-emerald-500"}`}>
-                {currentUser.role}
-              </div>
-            </div>
-          </div>
-
-          {/* Multiplayer buttons (lg+) */}
-          <div className="hidden lg:flex items-center gap-1 shrink-0">
-            <button
-              onClick={() => setActiveTab("multiplayer-join")}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold
-                bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200
-                dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700 transition-colors whitespace-nowrap"
-            >
-              <Sparkles className="w-3 h-3 shrink-0" /> Join
-            </button>
-            {isTeacher && (
+            {/* Role Switcher Pill */}
+            <div className="hidden sm:flex items-center bg-slate-100/90 dark:bg-slate-800/90 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-inner">
               <button
-                onClick={() => setActiveTab("host-lobby")}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold
-                  bg-amber-500 text-white hover:bg-amber-600 shadow-sm transition-colors whitespace-nowrap"
+                id="role-student-btn"
+                onClick={() => switchRole("student")}
+                title="Switch to Student view"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
+                  isStudent
+                    ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
               >
-                <Crown className="w-3 h-3 shrink-0" /> Host
+                <Users className="w-3.5 h-3.5" />
+                <span>Student</span>
               </button>
-            )}
+
+              <button
+                id="role-teacher-btn"
+                onClick={handleTeacherClick}
+                title={isTeacher ? "Teacher view active" : "Unlock Teacher view"}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
+                  isTeacher
+                    ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>Teacher</span>
+                {!isTeacher && <Lock className="w-3 h-3 text-slate-400" />}
+              </button>
+            </div>
           </div>
 
-          {/* Utility icon buttons */}
-          <div className="flex items-center shrink-0">
-            <button
-              onClick={toggleDarkMode}
-              title={darkMode ? "Light Mode" : "Dark Mode"}
-              className="w-8 h-8 rounded-lg flex items-center justify-center
-                hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-500" />}
-            </button>
-            <button
-              onClick={toggleAudio}
-              title={soundEnabled ? "Mute" : "Unmute"}
-              className="w-8 h-8 rounded-lg flex items-center justify-center
-                hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              {soundEnabled ? <Volume2 className="w-4 h-4 text-sky-500" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
-            </button>
-            {/* Mobile hamburger */}
-            <button
-              onClick={() => setMobileOpen((v) => !v)}
-              className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center
-                hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              {mobileOpen ? <X className="w-4 h-4 text-slate-600" /> : <Menu className="w-4 h-4 text-slate-600" />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════════ ROW 2 — Nav tabs (desktop only) ═══════════ */}
-      <div className="hidden md:block bg-slate-50/80 dark:bg-slate-900/70 border-t border-slate-100 dark:border-slate-800">
-        <div className="max-w-screen-2xl mx-auto px-3 sm:px-5">
-          <nav className="flex items-center h-9 gap-0.5 overflow-x-auto scrollbar-none">
+          {/* Center: Desktop Top Navigation Links */}
+          <nav className="hidden xl:flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = activeTab === item.id;
@@ -212,78 +141,187 @@ export const Navbar: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id as any)}
-                  className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium
-                    whitespace-nowrap transition-all duration-150 group shrink-0
-                    ${active
-                      ? "bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-300 font-semibold shadow-sm border border-slate-200 dark:border-slate-700"
-                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/50"
-                    }`}
+                  className={`relative flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-150 ${
+                    active
+                      ? "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-300 font-bold shadow-xs"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/60"
+                  }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? "text-sky-500" : "text-slate-400 group-hover:text-slate-500"}`} />
+                  <Icon className={`w-4 h-4 ${active ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400"}`} />
                   <span>{item.label}</span>
                   {item.badge && (
-                    <span className={`px-1 py-0.5 rounded-full text-[8px] font-bold leading-none
-                      ${item.badge === "New"
-                        ? "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400"
-                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
-                      }`}>
+                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black leading-none uppercase ${
+                      item.badge === "New"
+                        ? "bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200/50"
+                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/50"
+                    }`}>
                       {item.badge}
                     </span>
                   )}
                   {(item.count ?? 0) > 0 && (
-                    <span className="px-1 py-0.5 bg-amber-500 text-white text-[8px] font-bold rounded-full leading-none">
+                    <span className="px-1.5 py-0.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 text-[9px] font-black rounded-full leading-none shadow-xs">
                       {item.count}
                     </span>
                   )}
-                  {active && <span className="absolute bottom-0 left-2.5 right-2.5 h-0.5 bg-sky-500 rounded-full" />}
                 </button>
               );
             })}
+          </nav>
 
-            {/* Join / Host pushed to far right of nav row (md-lg screens) */}
-            <div className="ml-auto flex items-center gap-1 lg:hidden pl-2 shrink-0">
+          {/* Right: Actions, Join / Host & Utilities */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Quick Multiplayer Join Button */}
+            <button
+              onClick={() => setActiveTab("multiplayer-join")}
+              className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-800/70 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500 animate-pulse" />
+              <span>Join Game</span>
+            </button>
+
+            {/* Host Button for Teachers */}
+            {isTeacher && (
               <button
-                onClick={() => setActiveTab("multiplayer-join")}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold
-                  bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition-colors"
+                onClick={() => setActiveTab("host-lobby")}
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-sm shadow-amber-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                <Sparkles className="w-3 h-3" /> Join
+                <Crown className="w-3.5 h-3.5" />
+                <span>Host Room</span>
               </button>
-              {isTeacher && (
-                <button
-                  onClick={() => setActiveTab("host-lobby")}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-bold
-                    bg-amber-500 text-white hover:bg-amber-600 transition-colors"
-                >
-                  <Crown className="w-3 h-3" /> Host
-                </button>
-              )}
+            )}
+
+            {/* User Profile Avatar Pill */}
+            <div className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/70">
+              <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-extrabold text-white shadow-xs ${
+                isTeacher ? "bg-gradient-to-tr from-indigo-600 to-indigo-400" : "bg-gradient-to-tr from-emerald-600 to-emerald-400"
+              }`}>
+                {currentUser.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="text-left leading-none">
+                <span className="block text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[80px]">
+                  {currentUser.name}
+                </span>
+                <span className={`text-[9px] font-extrabold uppercase tracking-wider ${
+                  isTeacher ? "text-indigo-500" : "text-emerald-500"
+                }`}>
+                  {currentUser.role}
+                </span>
+              </div>
             </div>
+
+            {/* Utility Toggles: Dark Mode & Sound */}
+            <div className="flex items-center bg-slate-100/80 dark:bg-slate-800/80 p-0.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+              <button
+                onClick={toggleDarkMode}
+                title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer"
+              >
+                {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-500" />}
+              </button>
+              <button
+                onClick={toggleAudio}
+                title={soundEnabled ? "Mute Game Audio" : "Enable Game Audio"}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer"
+              >
+                {soundEnabled ? <Volume2 className="w-4 h-4 text-indigo-500" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+              </button>
+            </div>
+
+            {/* Mobile Menu Toggle Button */}
+            <button
+              onClick={() => setMobileOpen((v) => !v)}
+              className="xl:hidden w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════ SUB-NAV BAR (Desktop xl and below md+) ═══════════ */}
+      <div className="hidden md:block xl:hidden border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-900/40">
+        <div className="max-w-7xl mx-auto px-4">
+          <nav className="flex items-center h-10 gap-1 overflow-x-auto no-scrollbar">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as any)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                    active
+                      ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200 dark:border-slate-700 font-bold"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[8px] font-bold uppercase bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                      {item.badge}
+                    </span>
+                  )}
+                  {(item.count ?? 0) > 0 && (
+                    <span className="px-1 py-0.2 bg-amber-500 text-slate-950 text-[8px] font-bold rounded-full">
+                      {item.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
         </div>
       </div>
 
       {/* ═══════════ MOBILE DRAWER ═══════════ */}
       {mobileOpen && (
-        <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-3 py-3">
-
-          {/* User info */}
-          <div className={`flex items-center gap-2.5 mb-3 p-2.5 rounded-xl border
-            ${isTeacher ? "bg-indigo-50 border-indigo-200" : "bg-emerald-50 border-emerald-200"}`}>
-            <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold border-2 shrink-0
-              ${isTeacher ? "bg-indigo-100 text-indigo-700 border-indigo-300" : "bg-emerald-100 text-emerald-700 border-emerald-300"}`}>
-              {currentUser.name.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <div className="text-sm font-bold text-slate-800 dark:text-slate-100">{currentUser.name}</div>
-              <div className={`text-xs font-semibold capitalize ${isTeacher ? "text-indigo-500" : "text-emerald-500"}`}>
-                {currentUser.role} view
+        <div className="xl:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-4 py-4 space-y-3 animate-in slide-in-from-top-2 duration-150 shadow-xl">
+          {/* User info banner in mobile */}
+          <div className={`flex items-center justify-between p-3 rounded-2xl border ${
+            isTeacher
+              ? "bg-indigo-50/70 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-900"
+              : "bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-900"
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-xs ${
+                isTeacher ? "bg-indigo-600" : "bg-emerald-600"
+              }`}>
+                {currentUser.name.charAt(0).toUpperCase()}
               </div>
+              <div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white">{currentUser.name}</div>
+                <div className={`text-xs font-semibold capitalize ${isTeacher ? "text-indigo-600 dark:text-indigo-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                  {currentUser.role} mode
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile role switcher button */}
+            <div className="flex items-center gap-1 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+              <button
+                onClick={() => switchRole("student")}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                  isStudent ? "bg-emerald-500 text-white" : "text-slate-500"
+                }`}
+              >
+                Student
+              </button>
+              <button
+                onClick={handleTeacherClick}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 ${
+                  isTeacher ? "bg-indigo-600 text-white" : "text-slate-500"
+                }`}
+              >
+                Teacher
+                {!isTeacher && <Lock className="w-2.5 h-2.5" />}
+              </button>
             </div>
           </div>
 
-          {/* Nav grid 2-col */}
-          <div className="grid grid-cols-2 gap-1.5 mb-3">
+          {/* Navigation Links Grid */}
+          <div className="grid grid-cols-2 gap-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = activeTab === item.id;
@@ -291,11 +329,11 @@ export const Navbar: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => { setActiveTab(item.id as any); setMobileOpen(false); }}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-left transition-colors
-                    ${active
-                      ? "bg-sky-600 text-white shadow-sm"
-                      : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
-                    }`}
+                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-left transition-all ${
+                    active
+                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                      : "bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50"
+                  }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
                   <span className="truncate">{item.label}</span>
@@ -304,22 +342,20 @@ export const Navbar: React.FC = () => {
             })}
           </div>
 
-          {/* Multiplayer */}
-          <div className="flex gap-2">
+          {/* Multiplayer Quick Actions in Mobile */}
+          <div className="grid grid-cols-2 gap-2 pt-1">
             <button
               onClick={() => { setActiveTab("multiplayer-join"); setMobileOpen(false); }}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold
-                bg-purple-100 text-purple-700 border border-purple-200 hover:bg-purple-200 transition-colors"
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
             >
-              <Sparkles className="w-4 h-4" /> Join Game
+              <Sparkles className="w-3.5 h-3.5" /> Join Live Game
             </button>
             {isTeacher && (
               <button
                 onClick={() => { setActiveTab("host-lobby"); setMobileOpen(false); }}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold
-                  bg-amber-500 text-white hover:bg-amber-600 shadow-sm transition-colors"
+                className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 shadow-sm"
               >
-                <Crown className="w-4 h-4" /> Host Class
+                <Crown className="w-3.5 h-3.5" /> Host Classroom
               </button>
             )}
           </div>
@@ -329,7 +365,7 @@ export const Navbar: React.FC = () => {
       {/* ═══════════ TEACHER AUTHENTICATION MODAL ═══════════ */}
       {showTeacherAuthModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowTeacherAuthModal(false);
@@ -337,22 +373,22 @@ export const Navbar: React.FC = () => {
             }
           }}
         >
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-indigo-50/70 to-slate-50 dark:from-indigo-950/40 dark:to-slate-900 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-sm">
+                <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/30">
                   <Lock className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                     Teacher Verification
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 rounded-full">
+                    <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 rounded-full">
                       Protected
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Enter credentials to switch to Teacher View
+                    Switch to teacher tools, assignment creator & gradebook
                   </p>
                 </div>
               </div>
@@ -362,19 +398,19 @@ export const Navbar: React.FC = () => {
                   setShowTeacherAuthModal(false);
                   setAuthError("");
                 }}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Form */}
             <form onSubmit={handleTeacherAuthSubmit} className="p-6 space-y-4">
               {authError && (
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 text-xs font-medium">
+                <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 text-xs font-medium">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
                   <div>
-                    <div className="font-semibold">Access Denied</div>
+                    <div className="font-bold">Access Denied</div>
                     <div>{authError}</div>
                   </div>
                 </div>
@@ -382,11 +418,11 @@ export const Navbar: React.FC = () => {
 
               {/* Username */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
                   Teacher Username
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <GraduationCap className="w-4 h-4" />
                   </div>
                   <input
@@ -398,19 +434,19 @@ export const Navbar: React.FC = () => {
                       setTeacherUsername(e.target.value);
                       if (authError) setAuthError("");
                     }}
-                    placeholder="Enter teacher username"
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    placeholder="Enter 'teacher'"
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
 
               {/* Password */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
                   Teacher Password
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <KeyRound className="w-4 h-4" />
                   </div>
                   <input
@@ -421,13 +457,13 @@ export const Navbar: React.FC = () => {
                       setTeacherPassword(e.target.value);
                       if (authError) setAuthError("");
                     }}
-                    placeholder="Enter teacher password"
-                    className="w-full pl-9 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    placeholder="Enter 'teacher123'"
+                    className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                     title={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -435,26 +471,30 @@ export const Navbar: React.FC = () => {
                 </div>
               </div>
 
+              {/* Demo Hint */}
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                <span>Default credentials:</span>
+                <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">teacher / teacher123</span>
+              </div>
 
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => {
                     setShowTeacherAuthModal(false);
                     setAuthError("");
                   }}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-200 dark:shadow-none transition-all flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+                  className="px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <Lock className="w-3.5 h-3.5" />
-                  <span>Login as Teacher</span>
+                  <span>Verify & Enter Teacher Mode</span>
                 </button>
               </div>
             </form>
