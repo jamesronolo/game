@@ -6,4 +6,149 @@ coverage/
 *.log
 .env*
 !.env.example
-passwor
+password
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Frontend is the user-facing part of a website or application that you see and interact with directly in your browser. It translates complex code into visual elements using three core languages: HTML for structure, CSS for design, and JavaScript for interactivity. Its main purpose is to create a responsive, efficient, and visually appealing experience across all devices.
+If you want to dive deeper, let me know if you would like to:
+• Explore the top frontend frameworks like React or Vue
+• Compare the differences between frontend and backend
+• See a simple code example of how HTML, CSS, and JS work together
+
+
+AI Mode Conversation: what is frontend in 3 sentences
+
+
+You said: what is frontend in 3 sentences
+
+what is frontend in 3 sentences
+Frontend is the visible, interactive part of a website or application that users interact with directly in their web browser. It is built using core web technologies like HTML for structure, CSS for styling, and JavaScript for functionality and responsiveness. Ultimately, its main goal is to provide a seamless, accessible, and user-friendly experience by properly presenting data delivered from the backend.
+If you are interested, I can:
+• Explain the difference between frontend and backend
+• Recommend the best tools and frameworks for beginners (like React or Vue)
+• Share the basic skills needed to become a frontend developer
+Let me know how you would like to explore this topic!
+
+what is frontend in 3 sentence.
+
+Frontend is the user-facing part of a website or application that you see and interact with directly in your browser. It translates complex code into visual elements using three core languages: HTML for structure, CSS for design, and JavaScript for interactivity. Its main purpose is to create a responsive, efficient, and visually appealing experience across all devices.
+If you want to dive deeper, let me know if you would like to:
+• Explore the top frontend frameworks like React or Vue
+• Compare the differences between frontend and backend
+• See a simple code example of how HTML, CSS, and JS work together
+
+what is backeend in 3 sentences
+
+Backend is the behind-the-scenes part of a website or application that handles data storage, security, and business logic. It consists of a server, a database, and an application that processes requests and delivers the necessary information to the frontend. Built using languages like Python, Java, or Node.js, its main job is to ensure the entire system runs smoothly, securely, and efficiently.
+If you want to keep exploring, let me know if you would like to:
+• Compare the differences between frontend and backend in a table
+• Learn about the most popular databases (like SQL vs. MongoDB)
+• Understand how the frontend and backend communicate with each other
+Modern single-page applications (SPAs) frequently cache client authentication credentials and role identifiers in local browser storage (sessionStorage) to provide responsive route transitions and customized visualization dashboards. However, without formal server-authoritative state synchronization, client-side state is highly susceptible to unauthorized tampering, stale credential persistence, and configuration-leakage vulnerabilities. This paper presents a formal correctness analysis and algorithmic validation of the server-authoritative authorization model, session state transition invariants, and release configuration mechanisms implemented in the Bohol Cacao Information and Industry System (BCIIS Phase 4). We model the client session lifecycle as a deterministic finite-state transition system M = (S, Σ, δ, s0, F) with fail-closed termination boundaries. We demonstrate that under adversarial local storage role fabrication, the invariant AccessGranted(R_admin) ⇒ (f_auth(τ) ≠ null ∧ r_server = 'admin' ∧ status = 'approved') is maintained in all tested scenarios, conditioned on server-side HMAC-SHA256 signature verification, active database record validation, and the assumptions stated in Section 4.2. The release configuration halts initialization when the production API endpoint is missing, but only warns when a plain-HTTP localhost endpoint is configured explicitly. Furthermore, we decompose and analyze the interactive frontend visualizer into two discrete pipelines: a multi-predicate sequential directory filter (Algorithm 3A) and a dual-entity municipal activity aggregation map (Algorithm 3B), establishing tight linear time complexity Θ(n) under bounded field lengths (L ≤ 256) and auxiliary space S(n) = O(n + U), backed by a strong dynamic linear regression model T_hat(n) = 0.00045609n + 0.05911 ms (R² = 0.98407) across 250 empirical benchmark trials. The implementation is evaluated with 10 client Jest automated tests, 9 algorithm trace tests, and 13 backend security regression tests, all of which passed in automated mock test harnesses (exit code 0, run fingerprint 605cf099), covering rejection of weak JWT fallback secrets, automatic password-hash migration, and sequential storage purges (individual client tests ran in 1–12 ms).
+
+
+1 Introduction
+
+Under the strategic mandate of the Philippine Cacao Industry Roadmap 2021–2025 [1], regional digital infrastructure is essential to track smallholder productivity, post-harvest cacao processing capacities, and geographic clone distribution. The Bohol Cacao Information and Industry System (BCIIS Phase 4) [2, 12] was developed at Bohol Island State University (BISU) Bilar Campus in collaboration with the Department of Science and Technology – Provincial Science and Technology Office (DOST-PSTO Bohol) to serve as an agricultural census and monitoring platform across the 48 administrative jurisdictions (47 municipalities and 1 component city) of the province of Bohol. To provide responsive data visualization and low-latency navigation for agricultural stakeholders, BCIIS Phase 4 implements a decoupled architecture consisting of a React 18 single-page application (SPA) client [10] and a Node.js/Express RESTful backend. Modern reactive web frontends routinely store authentication tokens and user identity profiles in browser storage (sessionStorage and localStorage) to avoid redundant round-trip authentication handshakes on internal page transitions. However, browser storage exists entirely on the client side, outside the trusted execution boundary of the server. When client-side routers (such as react-router-dom) enforce access boundaries solely by reading unverified, mutable browser storage objects, severe authorization divergence occurs. A malicious user or rogue browser script can alter stored JSON objects (e.g., executing sessionStorage.setItem ('bciis_user', JSON. stringify({ role: 'admin' }))), thereby tricking the client routing engine into mounting privileged administrative consoles, directory inspection views, and management actions. Such tampering changes what the client renders; whether protected data and actions are actually exposed depends on server-side enforcement. Furthermore, dynamic API base URL resolution logic that falls back to plain-HTTP or localhost targets creates dangerous fail open attack vectors during staging-to-production deployment cycles. To resolve these architectural and computational vulnerabilities, this paper presents a formal correctness analysis and asymptotic complexity evaluation of three core subsystems in BCIIS Phase 4: (1) a server-authoritative session revalidation state machine that enforces fail-closed state invariants against client-side role fabrication; (2) a release configuration resolution mechanism that fails closed upon missing production endpoints and alerts operators against insecure transport; and (3) frontend visualizer data pipelines, specifically decomposing sequential multi-predicate filtering (Algorithm 3A) and hash-map-based municipal activity aggregation (Algorithm 3B). Grounded in verified repository commits (5bb659c5, a66c74c3, f6474fed) and automated test suites, this work provides an evidence-based analysis of state synchronization and visualization in this system, with the limits stated in Sections 4.2 and 6.
+
+ Scope and contributions. The analysis is deliberately limited to (i) the frontend session-state guards and their server-side verification path, (ii) release-time API URL selection, and (iii) two visualizer loops. It does not certify the security of the whole system; known backend gaps (e.g., Issue #36) are discussed in Section 6. The contributions are: (C1) a finite-state model of the session lifecycle with invariants derived from the source code and checked by automated tests; (C2) an accurate account of release configuration behavior, including its one case that is not fail-closed; and (C3) a conditional complexity derivation T(n, L, U) for the filter and aggregation pipelines, with an in-memory benchmark. 
+
+2 Related Work
+
+
+Token-based access control represents the foundational paradigm for stateless communication across distributed web architectures. The Internet Engineering Task Force (IETF) standardized JSON Web Tokens (JWT) in RFC 7519 [3], providing a compact, URL-safe container for digitally signed claims. For web applications in general, the OWASP Application Security Verification Standard (ASVS) [4] requires that access control rules be enforced on a trusted service layer and notes that client-side access control can be bypassed. Formal access control models, particularly the NIST Role-Based Access Control (RBAC) standard formalized by Ferraiolo et al. [5], define authorization as a relation over subject roles, operations, and objects. In distributed single-page applications, however, the separation of client rendering from backend persistence allows client-side state to diverge from server state (see the architectural patterns surveyed in [13]). When client frameworks evaluate RBAC predicates using stale or tampered local states, the access boundary fails. Saltzer and Schroeder's canonical security principles [6] dictate that secure systems must adopt fail-safe defaults (fail-closed behavior), ensuring that access is denied unless explicitly verified. For the visualizer pipelines, Cormen et al. [7] provide the analysis of linear scans, hash tables, and comparison sorting used in Section 4.3, while Bentley [8] describes multi-dimensional spatial partitioning (k-d trees), which we do not use here but identify as a candidate for future spatial indexing. TLS 1.3 [9] protects tokens in transit, a guarantee that a fallback to a plain-HTTP endpoint forfeits. Reactive UI frameworks [10] and web-mapping libraries [11] optimize DOM reconciliation and layer rendering, but they do not enforce server-side authorization on navigation guards; that responsibility lies with the application. Within the Philippine agricultural-informatics context [1, 2, 12], this paper offers a code-level correctness and complexity analysis of the BCIIS Phase 4 implementation and makes no claim of priority over other systems. 
+
+
+3 Project Context and Problem Definition
+
+
+3.1 Assigned Project Context
+
+The Bohol Cacao Information and Industry System (BCIIS Phase 4) was assigned to Group 10 under CS 311 (Algorithms and Complexity) at Bohol Island State University – Bilar Campus in partnership with DOST-PSTO Bohol [2, 12]. The system is split across two collaborative repositories: the frontend client (MAKASA-LABORATORY/BCIIS, branch jamesss, currently diverging 18 commits ahead and 6 commits behind deployed production main ddfdb69e under pinned commit 8b51167c) utilizing React 18 [10] and Leaflet Web-GIS [11], and the backend server (MAKASA-LABORATORY/BCIIS-Server, branch jamesss, commit 60d5ef7) utilizing Node.js, Express, and MySQL 8.0 stored procedures with bcrypt [14]. The platform manages agricultural census records, processing facility metrics, geospatial cacao suitability maps, and administrative workflows across all 48 municipalities of Bohol in accordance with the national cacao roadmap [1]. The system designates five functional roles: Super Administrator, Municipal Agriculturist, Registered Farmer, Cacao Processor, and Public Guest. In the session model of Section 3.2 these are abstracted to the coarser role identifiers stored by the client session guards (admin, user, farmer, processor). Group 10 was tasked with securing client-server state boundaries, hardening release configurations, and optimizing the computational performance of interactive directory visualizers.
+
+Apple, Tornado, Whisper, Bicycle, Gravity, Nebula, Blanket, Echo, Shadow, Sieve, Puddle, Clockwork, Feather, Volcano, Mirror, Horizon, Keyhole, Compass, Lantern, Velvet, Oasis, Avalanche, Anchor, Symphony, Catalyst, Paradox, Blueprint, Quirk, Silhouette, Fossil, Nomad, Glitch, Blizzard, Cocoon, Zenith, Vortex, Labyrinth, Mirage, Summit, Echo, Pixel, Spark, Bubble, Meadow, Pebble, Thunder, Willow, Canvas, Fossil, Indigo, Crimson, Sapphire, Amber, Golden, Silver, Copper, Platinum, Bronze, Emerald, Ruby, Marble, Granite, Quartz, Crystal, Diamond, Pearl, Shell, Coral, Reef, Wave, Tide, Breeze, Gale, Mist, Fog, Cloud, Rain, Snow, Hail, Frost, Icicle, Glacier, Canyon, Valley, Cliff, Dune, Desert, Tundra, Jungle, Forest, Swamp, Marsh, River, Stream, Lake, Pond, Ocean, Sea, Beach, Island.
+
+
+
+
+
+e difference between frontend and backend
+• Recommend the best tools and frameworks for beginners (like React or Vue)
+• Share the basic skills needed to become a frontend developer
+Let me know how you would like to explore this topic!
+
+what is frontend in 3 sentence.
+
+Frontend is the user-facing part of a website or application that you see and interact with directly in your browser. It translates complex code into visual elements using three core languages: HTML for structure, CSS for design, and JavaScript for interactivity. Its main purpose is to create a responsive, efficient, and visually appealing experience across all devices.
+If you want to dive deeper, let me know if you would like to:
+• Explore the top frontend frameworks like React or Vue
+• Compare the differences between frontend and backend
+• See a simple code example of how HTML, CSS, and JS work together
+
+
+AI Mode Conversation: what is frontend in 3 sentences
+
+
+You said: what is frontend in 3 sentences
+
+what is frontend in 3 sentences
+Frontend is the visible, interactive part of a website or application that users interact with directly in their web browser. It is built using core web technologies like HTML for structure, CSS for styling, and JavaScript for functionality and responsiveness. Ultimately, its main goal is to provide a seamless, accessible, and user-friendly experience by properly presenting data delivered from the backend.
+If you are interested, I can:
+• Explain the difference between frontend and backend
+• Recommend the best tools and frameworks for beginners (like React or Vue)
+• Share the basic skills needed to become a frontend developer
+Let me know how you would like to explore this topic!
+
+what is frontend in 3 sentence.
+
+Frontend is the user-facing part of a website or application that you see and interact with directly in your browser. It translates complex code into visual elements using three core languages: HTML for structure, CSS for design, and JavaScript for interactivity. Its main purpose is to create a responsive, efficient, and visually appealing experience across all devices.
+If you want to dive deeper, let me know if you would like to:
+• Explore the top frontend frameworks like React or Vue
+• Compare the differences between frontend and backend
+• See a simple code example of how HTML, CSS, and JS work together
+
+what is backeend in 3 sentences
+
+Backend is the behind-the-scenes part of a website or application that handles data storage, security, and business logic. It consists of a server, a database, and an application that processes requests and delivers the necessary information to the frontend. Built using languages like Python, Java, or Node.js, its main job is to ensure the entire system runs smoothly, securely, and efficiently.
+If you want to keep exploring, let me know if you would like to:
+• Compare the differences between frontend and backend in a table
+• Learn about the most popular databases (like SQL vs. MongoDB)
+• Understand how the frontend and backend communicate with each other
+Modern single-page applications (SPAs) frequently cache client authentication credentials and role identifiers in local browser storage (sessionStorage) to provide responsive route transitions and customized visualization dashboards. However, without formal server-authoritative state synchronization, client-side state is highly susceptible to unauthorized tampering, stale credential persistence, and configuration-leakage vulnerabilities. This paper presents a formal correctness analysis and algorithmic validation of the server-authoritative authorization model, session state transition invariants, and release configuration mechanisms implemented in the Bohol Cacao Information and Industry System (BCIIS Phase 4). We model the client session lifecycle as a deterministic finite-state transition system M = (S, Σ, δ, s0, F) with fail-closed termination boundaries. We demonstrate that under adversarial local storage role fabrication, the invariant AccessGranted(R_admin) ⇒ (f_auth(τ) ≠ null ∧ r_server = 'admin' ∧ status = 'approved') is maintained in all tested scenarios, conditioned on server-side HMAC-SHA256 signature verification, active database record validation, and the assumptions stated in Section 4.2. The release configuration halts initialization when the production API endpoint is missing, but only warns when a plain-HTTP localhost endpoint is configured explicitly. Furthermore, we decompose and analyze the interactive frontend visualizer into two discrete pipelines: a multi-predicate sequential directory filter (Algorithm 3A) and a dual-entity municipal activity aggregation map (Algorithm 3B), establishing tight linear time complexity Θ(n) under bounded field lengths (L ≤ 256) and auxiliary space S(n) = O(n + U), backed by a strong dynamic linear regression model T_hat(n) = 0.00045609n + 0.05911 ms (R² = 0.98407) across 250 empirical benchmark trials. The implementation is evaluated with 10 client Jest automated tests, 9 algorithm trace tests, and 13 backend security regression tests, all of which passed in automated mock test harnesses (exit code 0, run fingerprint 605cf099), covering rejection of weak JWT fallback secrets, automatic password-hash migration, and sequential storage purges (individual client tests ran in 1–12 ms).
+
+
+1 Introduction
+
+Under the strategic mandate of the Philippine Cacao Industry Roadmap 2021–2025 [1], regional digital infrastructure is essential to track smallholder productivity, post-harvest cacao processing capacities, and geographic clone distribution. The Bohol Cacao Information and Industry System (BCIIS Phase 4) [2, 12] was developed at Bohol Island State University (BISU) Bilar Campus in collaboration with the Department of Science and Technology – Provincial Science and Technology Office (DOST-PSTO Bohol) to serve as an agricultural census and monitoring platform across the 48 administrative jurisdictions (47 municipalities and 1 component city) of the province of Bohol. To provide responsive data visualization and low-latency navigation for agricultural stakeholders, BCIIS Phase 4 implements a decoupled architecture consisting of a React 18 single-page application (SPA) client [10] and a Node.js/Express RESTful backend. Modern reactive web frontends routinely store authentication tokens and user identity profiles in browser storage (sessionStorage and localStorage) to avoid redundant round-trip authentication handshakes on internal page transitions. However, browser storage exists entirely on the client side, outside the trusted execution boundary of the server. When client-side routers (such as react-router-dom) enforce access boundaries solely by reading unverified, mutable browser storage objects, severe authorization divergence occurs. A malicious user or rogue browser script can alter stored JSON objects (e.g., executing sessionStorage.setItem ('bciis_user', JSON. stringify({ role: 'admin' }))), thereby tricking the client routing engine into mounting privileged administrative consoles, directory inspection views, and management actions. Such tampering changes what the client renders; whether protected data and actions are actually exposed depends on server-side enforcement. Furthermore, dynamic API base URL resolution logic that falls back to plain-HTTP or localhost targets creates dangerous fail open attack vectors during staging-to-production deployment cycles. To resolve these architectural and computational vulnerabilities, this paper presents a formal correctness analysis and asymptotic complexity evaluation of three core subsystems in BCIIS Phase 4: (1) a server-authoritative session revalidation state machine that enforces fail-closed state invariants against client-side role fabrication; (2) a release configuration resolution mechanism that fails closed upon missing production endpoints and alerts operators against insecure transport; and (3) frontend visualizer data pipelines, specifically decomposing sequential multi-predicate filtering (Algorithm 3A) and hash-map-based municipal activity aggregation (Algorithm 3B). Grounded in verified repository commits (5bb659c5, a66c74c3, f6474fed) and automated test suites, this work provides an evidence-based analysis of state synchronization and visualization in this system, with the limits stated in Sections 4.2 and 6.
+
+ Scope and contributions. The analysis is deliberately limited to (i) the frontend session-state guards and their server-side verification path, (ii) release-time API URL selection, and (iii) two visualizer loops. It does not certify the security of the whole system; known backend gaps (e.g., Issue #36) are discussed in Section 6. The contributions are: (C1) a finite-state model of the session lifecycle with invariants derived from the source code and checked by automated tests; (C2) an accurate account of release configuration behavior, including its one case that is not fail-closed; and (C3) a conditional complexity derivation T(n, L, U) for the filter and aggregation pipelines, with an in-memory benchmark. 
+
+2 Related Work
+
+
+Token-based access control represents the foundational paradigm for stateless communication across distributed web architectures. The Internet Engineering Task Force (IETF) standardized JSON Web Tokens (JWT) in RFC 7519 [3], providing a compact, URL-safe container for digitally signed claims. For web applications in general, the OWASP Application Security Verification Standard (ASVS) [4] requires that access control rules be enforced on a trusted service layer and notes that client-side access control can be bypassed. Formal access control models, particularly the NIST Role-Based Access Control (RBAC) standard formalized by Ferraiolo et al. [5], define authorization as a relation over subject roles, operations, and objects. In distributed single-page applications, however, the separation of client rendering from backend persistence allows client-side state to diverge from server state (see the architectural patterns surveyed in [13]). When client frameworks evaluate RBAC predicates using stale or tampered local states, the access boundary fails. Saltzer and Schroeder's canonical security principles [6] dictate that secure systems must adopt fail-safe defaults (fail-closed behavior), ensuring that access is denied unless explicitly verified. For the visualizer pipelines, Cormen et al. [7] provide the analysis of linear scans, hash tables, and comparison sorting used in Section 4.3, while Bentley [8] describes multi-dimensional spatial partitioning (k-d trees), which we do not use here but identify as a candidate for future spatial indexing. TLS 1.3 [9] protects tokens in transit, a guarantee that a fallback to a plain-HTTP endpoint forfeits. Reactive UI frameworks [10] and web-mapping libraries [11] optimize DOM reconciliation and layer rendering, but they do not enforce server-side authorization on navigation guards; that responsibility lies with the application. Within the Philippine agricultural-informatics context [1, 2, 12], this paper offers a code-level correctness and complexity analysis of the BCIIS Phase 4 implementation and makes no claim of priority over other systems. 
+
+
+3 Project Context and Problem Definition
+
+
+3.1 Assigned Project Context
+
+The Bohol Cacao Information and Industry System (BCIIS Phase 4) was assigned to Group 10 under CS 311 (Algorithms and Complexity) at Bohol Island State University – Bilar Campus in partnership with DOST-PSTO Bohol [2, 12]. The system is split across two collaborative repositories: the frontend client (MAKASA-LABORATORY/BCIIS, branch jamesss, currently diverging 18 commits ahead and 6 commits behind deployed production main ddfdb69e under pinned commit 8b51167c) utilizing React 18 [10] and Leaflet Web-GIS [11], and the backend server (MAKASA-LABORATORY/BCIIS-Server, branch jamesss, commit 60d5ef7) utilizing Node.js, Express, and MySQL 8.0 stored procedures with bcrypt [14]. The platform manages agricultural census records, processing facility metrics, geospatial cacao suitability maps, and administrative workflows across all 48 municipalities of Bohol in accordance with the national cacao roadmap [1]. The system designates five functional roles: Super Administrator, Municipal Agriculturist, Registered Farmer, Cacao Processor, and Public Guest. In the session model of Section 3.2 these are abstracted to the coarser role identifiers stored by the client session guards (admin, user, farmer, processor). Group 10 was tasked with securing client-server state boundaries, hardening release configurations, and optimizing the computational performance of interactive directory visualizers
