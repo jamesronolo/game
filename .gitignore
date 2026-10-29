@@ -141,3 +141,371 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+
+
+all issue in the backend
+
+
+:26 PM, 9/15/2026
+issue 1 
+
+
+[Medium] Fail closed for credentialed CORS/Socket.IO origins on gello_rana #29
+Open
+Open
+[\[Medium\] Fail closed for credentialed CORS/Socket.IO origins on gello_rana](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/29#top)#29
+Description
+[maxangelo987](https://github.com/maxangelo987)
+opened [2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/29#issue-5291477066)
+Collaborative-only audit finding
+Branch reviewed: gello_rana @ bcb8d936.
+Server/server.js enables credentialed cross-origin requests but falls back to permissive origins when environment configuration is absent:
+HTTP CORS uses origin: process.env.CORS_ORIGIN || true with credentials: true, which reflects/accepts arbitrary browser origins when CORS_ORIGIN is missing.
+Socket.IO uses origin: process.env.SOCKET_IO_ORIGIN || '*' with credentials: true, similarly failing open when the allowlist is not configured.
+The global error handler also returns err.message to clients in production; internal errors should be logged server-side while production clients receive a generic message.
+This branch does add useful controls—Helmet, compression, request IDs, rate limiting, JWT-secret fail-fast checks, timeouts, and graceful shutdown. Preserve those improvements while correcting the configuration defaults.
+Required remediation
+Fail closed in non-development environments when allowed origins are missing; parse an explicit allowlist and reject non-matching origins.
+Apply the same explicit allowlist policy to Socket.IO; do not use * with credentials.
+Keep development localhost origins explicit rather than using broad reflection as a production fallback.
+Return generic 5xx client messages in production; retain detailed errors only in server logs/development diagnostics.
+Add tests proving an allowed origin succeeds, an unlisted origin is rejected, missing production allowlist prevents insecure startup or requests, and Socket.IO follows the same policy.
+Branch naming/process note
+gello_rana is contributor-oriented rather than task-oriented. Do not rename this branch automatically, but use task/module names for future work, e.g. fix/cors-allowlist, security/socket-origin-policy, or the actual assigned module.
+Activity
+maxangelo987 commented 2 weeks ago
+[maxangelo987](https://github.com/maxangelo987)
+[2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/29#issuecomment-5537524875) – with [ChatGPT Codex Connector](https://www.chatgpt.com/)
+Author
+Collaborative-only backlog re-verification — 2026-09-04 15:58 PHT
+Reviewed previously uncovered legacy branch cardana @ ce0a9637 as part of the Bohol Cacao System Phase 4 lineage. Server/server.js enables credentials: true with origin: true, so credentialed browser requests are accepted from arbitrary origins when this branch is deployed. This independently preserves the fail-open CORS condition tracked here. The branch does correctly honor process.env.PORT || 5000 in app.listen(port, ...); preserve that deployment fix.
+Required remediation remains: use an explicit origin allowlist, fail closed in non-development environments when it is missing, keep localhost/dev origins explicit, and add allowed-origin/rejected-origin/missing-config tests. Also sanitize raw internal error responses in the mounted route modules.
+Branch naming process warning: cardana is personal-only. Do not rewrite historical branch state, but use task-oriented names for future work such as fix/cors-allowlist, fix/credentialed-origin-policy, or the actual assigned module/task.
+No source code, branch state, PR state, secrets, or application records were modified or reproduced by this audit.
+maxangelo987 commented 2 weeks ago
+[maxangelo987](https://github.com/maxangelo987)
+[2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/29#issuecomment-5548612025) – with [ChatGPT Codex Connector](https://www.chatgpt.com/)
+Author
+Collaborative-only backlog verification — 2026-09-05 PHT: bunao @ ec4b081c1 independently preserves the same credentialed HTTP CORS fail-open pattern in Server/server.js (origin: true with credentials: true). This legacy/source-bearing branch therefore remains affected by the canonical origin-policy finding. Keep [#29](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/29) canonical; no duplicate issue opened. Required remediation remains an explicit approved-origin allowlist with fail-closed non-development behavior and allowed/rejected/missing-config regression tests. Branch-process note: bunao is personal-only; keep history unchanged, but use task-oriented future names such as fix/cors-allowlist or security/origin-policy. No collaboration-participation warning is inferred from this 2025 legacy branch.
+
+issue 2
+
+High: Remove credential data from JWT payload and make auth recheck authoritative #30
+Open
+Open
+[High: Remove credential data from JWT payload and make auth recheck authoritative](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/30#top)#30
+Description
+[maxangelo987](https://github.com/maxangelo987)
+opened [2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/30#issue-5294092477)
+Severity
+High
+Scope reviewed
+BCIIS-Server — backlog branch ESTO
+Finding
+The authentication path signs the complete stored-procedure login row into the JWT (jwt.sign({ data: data.result0[0] }, ...)). The subsequent auth-check path explicitly reads decoded.data.password, confirming that password/credential material is being carried in the client-readable JWT payload. JWT payloads are only encoded, not confidential, so credential material must never be placed there.
+The same auth-check handler sends an authenticated response before the database recheck completes, then later attempts another response after calling ST_AUTH_RECHECK. This makes the server-side recheck non-authoritative and risks double-send / headers already sent behavior.
+Related auth-path quality issues observed on this branch:
+/getCSRFToken calls req.csrfToken() while the CSRF middleware is commented out, so the endpoint can fail at runtime.
+Several auth/database error paths return raw error objects to clients.
+server.js computes process.env.PORT || 4000 but starts the app on hard-coded port 3000, which can break deployment configuration.
+Required remediation
+Restrict JWT claims to non-sensitive, server-authoritative identifiers/claims only (for example sub, narrowly scoped role/authorization identifiers, token/session version, jti). Never include a password, password hash, credential verifier, or the entire user row.
+Perform the authoritative server/database recheck before returning authenticated user state, with exactly one response path. Consider a server-side session/token version or equivalent revocation mechanism so credential/authorization changes can invalidate prior authorization as intended.
+Return generic client-safe authentication/database errors; keep detailed diagnostics only in protected server logs.
+Either correctly enable/configure CSRF protection for cookie-based authenticated state changes or remove the dead token endpoint and document the chosen CSRF threat model if bearer-header authentication is used instead.
+Honor the configured deployment port rather than a hard-coded listener port.
+Add regression tests proving that decoded tokens contain no credential material, invalid/changed credentials cannot remain authoritatively authenticated, auth-check success/failure sends one response only, and CSRF/deployment configuration behaves as intended.
+Branch naming process note
+ESTO is personal/vague rather than task-oriented. Please keep existing branch history unchanged, but use task-oriented names for future work, e.g. fix/auth-token-payload, fix/auth-server-recheck, or fix/csrf-route.
+No secret value or production record is reproduced in this report.
+Activity
+maxangelo987 commented 2 weeks ago
+[maxangelo987](https://github.com/maxangelo987)
+[2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/30#issuecomment-5476136198) – with [ChatGPT Codex Connector](https://www.chatgpt.com/)
+Author
+Collaborative-only backlog verification — 2026-08-31 17:00 Asia/Manila
+Re-verified this canonical auth finding on previously unlogged source-bearing branch RonoloJ_bagoR @ db0194c0 (2026-04-21). Server/routes/auth.routes.js still signs the entire login result row into the JWT and later reads decoded.data.password during /authCheck, confirming credential material is carried in the client-readable token payload. The same handler sends { sessionValidate: true } before the database recheck and then can attempt a second response afterward, so the recheck is not authoritative and can trigger double-send behavior. CSRF middleware remains commented while /csrf calls req.csrfToken(), and raw auth/runtime error details are returned to clients.
+The branch tree also contains a tracked Server/.env; no secret value was opened or reproduced. Preserve the branch's parameterized stored-procedure calls while remediating the token/session boundary, credential exposure, fail-closed config, sanitized errors, and secret tracking/history.
+Branch naming process warning: RonoloJ_bagoR is contributor-oriented rather than task/module-oriented. Keep history unchanged, but use names such as fix/auth-token-payload, fix/auth-server-recheck, or the actual assigned module/task for future work.
+No source branch or application code was modified by this audit.
+maxangelo987 commented last week
+[maxangelo987](https://github.com/maxangelo987)
+[1w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/30#issuecomment-5573331586) – with [ChatGPT Codex Connector](https://www.chatgpt.com/)
+Author
+Collaborative-only backlog verification — bunao @ ec4b081c17fe31a8e598eeda76c6ca7ed13a396b (legacy lineage).
+This branch independently reproduces the same auth defect class already tracked here: auth.routes.js signs the complete stored-procedure login row into the JWT ({ data: data.result0[0] }), and authCheck subsequently reads decoded.data.password, confirming credential material is carried in the client-readable token payload. authCheck also sends { sessionValidate: true } before the database recheck completes and then attempts additional responses from the async recheck, so the recheck is not authoritative and can trigger double-send behavior.
+Additional branch-specific risk: Server/.env is tracked in Git. Secret values were not inspected or reproduced. Treat any committed credentials/keys as exposed: revoke/rotate as applicable, untrack the file, keep only .env.example, and assess history cleanup.
+Required remediation remains: minimal non-sensitive JWT claims only; authoritative server-side recheck before the single response path; sanitized auth/database errors; remove/revoke tracked environment secrets; regression tests proving tokens contain no credential material and auth-check emits exactly one response.
+Branch process warning: bunao is personal-only rather than task-oriented. Preserve history, but use names such as fix/auth-token-payload, fix/auth-session-recheck, or the actual assigned task for future work.
+
+issue 3
+
+[Critical][Jamesnew] Admin application review/approval routes are unauthenticated #31
+Open
+Open
+[\[Critical\]\[Jamesnew\] Admin application review/approval routes are unauthenticated](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/31#top)#31
+Description
+[maxangelo987](https://github.com/maxangelo987)
+opened [2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/31#issue-5294226736)
+Scope
+Backlog audit of source-bearing branch Jamesnew at 6619dfe3 (May 10, 2026). This is a branch-specific finding and should not be treated as a regression on current main unless the same code is merged there.
+Critical — admin application review and approval are reachable without authentication/authorization
+Server/server.js mounts /admin-applications directly with no global auth guard. In Server/routes/admin_applications.routes.js, the following routes have no authentication/role middleware:
+GET /pending
+GET /all
+GET /:id
+PUT /:id/approve
+PUT /:id/reject
+The approve/reject handlers also trust reviewedBy from the request body instead of deriving the reviewer from a verified server-side principal. If this branch is deployed/reused, an unauthenticated caller can enumerate pending admin applications and attempt to approve/reject them, while spoofing the reviewer identifier.
+Medium — raw internal errors are returned to clients
+Several handlers interpolate err.message into 500 responses. Keep detailed DB/runtime diagnostics in restricted logs and return generic production errors.
+Positive control
+The reviewed database operations use parameterized stored-procedure calls (CALL ... with placeholder arrays). Preserve that SP-only pattern.
+Required remediation
+Require a server-verifiable authenticated session/JWT on all admin-application review routes.
+Enforce an explicit privileged reviewer role server-side before list/read/approve/reject operations.
+Derive reviewedBy from the authenticated principal; never accept it as caller-authoritative input.
+Return only the minimum application fields required for review and avoid leaking password hashes or other sensitive columns from stored procedures.
+Replace raw err.message client responses with sanitized errors.
+Add negative tests for anonymous access, wrong-role access, spoofed reviewer IDs, repeated processing, and cross-account/admin privilege escalation.
+Branch naming process warning
+Jamesnew is personal/vague and does not identify the task or module. Do not rename history destructively; for future work use a task-oriented name such as fix/admin-application-authz or feature/admin-application-review.
+Suggested course alignment
+DSA W2 — ADTs/data flow/backend operations: document request → authentication → role authorization → validation → parameterized stored procedure → sanitized response, with negative tests as evidence.
+No application source, source branch, PR state, or merge history was modified by this audit.
+
+
+issue 4
+
+[High] Services mutations lack server-verifiable authorization and trust caller identity #32
+Open
+Open
+[\[High\] Services mutations lack server-verifiable authorization and trust caller identity](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/32#top)#32
+Description
+[maxangelo987](https://github.com/maxangelo987)
+opened [2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/32#issue-5306182639)
+Collaborative-only audit finding
+Backlog review of dev found that the services API is mounted directly at /services without a verified authentication/role middleware. In Server/routes/services.routes.js, callers can create, update, and delete services, and service creation accepts created_by directly from the request body.
+Risk
+Anonymous or unauthorized callers may be able to mutate service records if this branch is deployed/merged as-is.
+created_by is caller-controlled instead of derived from a verified server-side principal, weakening audit attribution.
+Several failure paths return raw err.message, which can disclose database/runtime details.
+Positive implementation evidence
+The reviewed relational operations use parameterized stored-procedure calls (CALL sp_*) rather than direct business SQL. Preserve this boundary.
+Required remediation
+Require server-verifiable authentication for service mutations and enforce the appropriate privileged role/organization scope.
+Derive creator/updater identity from the authenticated principal; do not trust created_by or equivalent identity fields from the caller.
+Add negative tests for anonymous, wrong-role, forged identity, and cross-scope requests.
+Return sanitized API errors while retaining detailed diagnostics only in protected server logs.
+Keep the existing parameterized stored-procedure-only relational access.
+Branch naming
+dev is too generic for collaborative task tracking. For future work, prefer a task-oriented name such as feature/service-management or fix/services-authz. No branch rename or source modification was performed by this audit.
+
+issue 5
+
+
+[High][AuthZ/SP] Announcement routes trust caller identity and perform direct relational writes #33
+Open
+Open
+[\[High\]\[AuthZ/SP\] Announcement routes trust caller identity and perform direct relational writes](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/33#top)#33
+Description
+[maxangelo987](https://github.com/maxangelo987)
+opened [2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/33#issue-5313762939)
+Backlog substantive audit of main found a distinct announcement-module security/database boundary issue.
+Verified findings
+Announcement feed and unread-count handlers trust userId and role supplied by query parameters instead of deriving identity/role from a verified server-side principal.
+/announcements/admin/all, /create, PUT /:id, and DELETE /:id show no route-level authentication/role guard in this router. /create also trusts adminId/adminName from the request body, allowing spoofed attribution if the router is reachable as mounted.
+Runtime relational business operations use direct SQL. This includes direct INSERT into announcements and notifications, INSERT IGNORE into announcement_reads, UPDATE announcements, DELETE FROM announcements, plus direct SELECTs. Parameterization helps injection safety but still violates the MAKASA stored-procedure-only runtime relational policy. Direct writes are High severity; direct reads are at least Medium.
+Multiple 500 responses return raw err.message to clients.
+Required remediation
+Require server-verifiable authentication on announcement routes and enforce admin authorization for list-all/create/update/delete operations.
+Derive user/admin identity and role from the authenticated principal; do not trust userId, role, adminId, or adminName as caller-authoritative identity fields.
+Migrate all runtime announcement/notification/read-tracking relational operations to named, parameterized stored procedures. Preserve transaction boundaries for publish + notification writes.
+Return sanitized production errors while retaining detailed diagnostics only in protected server logs.
+Add negative tests for anonymous access, wrong-role access, forged identity/role, cross-user read-state manipulation, and unauthorized create/update/delete.
+Suggested DSA course task
+W2 — ADTs/data flow/backend operations: document and implement the request → authenticated principal → authorization → validation → parameterized stored procedure → sanitized response flow for the announcement module. Expected evidence: commit(s), route tests, SP calls, and negative authorization tests.
+No application source or source branch was modified by this audit.
+
+
+issue 6
+[High][Privacy] James_Bago tracks a populated database backup with real application records #34
+Open
+Open
+[\[High\]\[Privacy\] James_Bago tracks a populated database backup with real application records](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/34#top)#34
+Description
+[maxangelo987](https://github.com/maxangelo987)
+opened [2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/34#issue-5314080742)
+Collaborative-only backlog finding
+Project: Bohol Cacao System Phase 4Repository / branch: BCIIS-Server/James_Bago @ d7365e90Severity: High
+The branch tracks Database Backup/DATABASE_Backup.sql, and the reviewed artifact is not schema-only: it contains populated application records, including business/research-survey content and account/authentication-related rows. No record values, credentials, hashes, or personal details are reproduced in this issue.
+Risk
+Source control becomes a distribution/history channel for real application/research/PII-like records that do not belong in an implementation repository.
+Account/authentication rows and other sensitive operational data increase impact if the repository or its history is exposed beyond the intended audience.
+A committed database snapshot can persist in Git history even after a later file deletion.
+Required remediation
+Stop committing populated database backups/dumps to implementation branches.
+Keep only schema definitions, parameterized stored procedures, migrations, and synthetic/non-identifying fixtures needed for development/testing.
+Privately assess whether the committed dump contains real production/research/personal/account data; do not paste records into GitHub discussions.
+If sensitive/credential-bearing data is confirmed, rotate/revoke affected credentials where applicable and assess Git-history cleanup according to the project’s retention/governance requirements.
+Add repository-ignore/pre-commit controls so generated/populated SQL backups are not recommitted.
+Add a lightweight CI/review check that rejects populated dump artifacts while allowing approved schema/SP/migration files.
+Branch naming
+James_Bago is contributor-oriented rather than task/module-oriented. For future implementation work, prefer names such as chore/database-artifact-hygiene, fix/backup-data-governance, or the actual assigned feature/module. This audit does not rename or modify the branch.
+Suggested course alignment
+DSA W1/W2 — Git/programming review + backend data flow: document the allowed DB artifact boundary and demonstrate schema/SP/migration-only source control with synthetic fixtures and a repository check.
+Activity
+maxangelo987 commented 2 weeks ago
+[maxangelo987](https://github.com/maxangelo987)
+[2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/34#issuecomment-5533253483) – with [ChatGPT Codex Connector](https://www.chatgpt.com/)
+Author
+Collaborative-only lineage verification — 2026-09-04 07:03 PHT
+The same tracked Database Backup/DATABASE_Backup.sql artifact is present on update_2ndYear @ 30fcb04d0e51f498d94d8414a450e1c1ce5fbf12, so [#34](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/34) is not isolated to James_Bago; it persists across this BCIIS-Server lineage. The branch tree also contains a tracked Server/.env. No dump records or secret values were inspected or reproduced in this audit.
+Keep [#34](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/34) canonical for the populated/operational database-backup governance risk. Remediation should remove populated dumps from source/history as appropriate, keep only schema/SP/migrations plus synthetic fixtures, add ignore/pre-commit/CI controls, and privately assess whether any credentials or sensitive records require rotation/history cleanup.
+maxangelo987 commented 2 weeks ago
+[maxangelo987](https://github.com/maxangelo987)
+[2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/34#issuecomment-5548613161) – with [ChatGPT Codex Connector](https://www.chatgpt.com/)
+Author
+Collaborative-only backlog verification — 2026-09-05 PHT: bunao @ ec4b081c1 is another source-bearing legacy branch whose tree tracks Server/.env. I did not inspect or reproduce any secret value. The branch's Database Backup/BCIIS_database.sql is empty at this tip, so this verification is limited to tracked environment/config exposure rather than populated-record evidence. Keep [#34](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/34) canonical for database/config artifact hygiene: untrack real environment files, retain sanitized examples only, privately assess whether credentials in history require rotation/cleanup, and keep schema/SP/migrations/synthetic fixtures as the repository-safe database artifacts.
+maxangelo987 commented last week
+[maxangelo987](https://github.com/maxangelo987)
+[1w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/34#issuecomment-5554099027) – with [ChatGPT Codex Connector](https://www.chatgpt.com/)
+Author
+Collaborative-only backlog verification — 2026-09-06 03:01 PHT
+Re-verified on dev: the branch still tracks a Database Backup/ directory containing a very large SQL dump artifact (maps.sql, ~16.4 MB) alongside SP/schema files. Earlier review of this repository lineage already established that the committed backup contains populated application records; no records, secrets, hashes, or personal data are reproduced here.
+This remains a High privacy/data-governance risk because populated database snapshots persist through Git history and should not be part of implementation source control. Keep schema/SP/migrations and synthetic fixtures only; assess history exposure privately and rotate/revoke credentials if any credential-bearing data was included.
+Branch naming process note: dev is generic. Prefer a task-oriented branch such as chore/database-artifact-hygiene or the actual assigned module/task. No branch was renamed or otherwise modified.
+
+
+issue 7
+
+
+High: dev farmer routes expose and mutate farmer records without auth/RBAC #35
+Open
+Open
+[High: dev farmer routes expose and mutate farmer records without auth/RBAC](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/35#top)#35
+Description
+[maxangelo987](https://github.com/maxangelo987)
+opened [2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/35#issue-5330165751)
+Collaborative-only backlog finding
+Project: Bohol Cacao System Phase 4Repository / branch: BCIIS-Server/dev @ 06f0d5acSeverity: High
+The dev branch mounts /farmers with only the search rate limiter. The farmer router itself has no authentication or authorization middleware, yet it exposes farmer listing/search and permits create, update, delete, and bulk-delete operations by caller-supplied IDs/body data.
+The implementation does use parameterized stored-procedure calls and transactions for the relational operations, which is positive and should be preserved. However, rate limiting is not an authorization control. The current route surface permits anonymous access to sensitive farmer/profile information and anonymous mutation/deletion if the branch is deployed or otherwise reachable.
+The handlers also return raw err.message values in 500 responses, which can disclose database/runtime details.
+Required remediation
+Require server-verifiable authentication before farmer/profile reads and mutations.
+Add explicit least-privilege RBAC and, where applicable, ownership/scope checks for listing/search/create/update/delete/bulk-delete.
+Do not trust caller-selected record IDs as authorization. Derive allowed scope from the verified session/token and enforce it server-side.
+Preserve the existing parameterized stored-procedure boundary and transaction handling.
+Replace raw database/runtime error messages in client responses with generic production-safe messages; retain diagnostics only in restricted server logs.
+Add tests covering anonymous access (401), authenticated-but-unauthorized access (403), authorized reads/mutations, cross-scope ID attempts, bulk-delete authorization, transaction rollback, and sanitized failures.
+Branch naming process warning
+dev is too generic for active implementation work. Do not rename or rewrite this branch as part of remediation, but future work should use task-oriented names such as fix/farmer-route-authz, feature/farmer-directory-rbac, or the actual assigned module/task.
+No secret values or application records are reproduced in this issue.
+
+
+issue 8
+
+
+[High][Legacy branch] Profile CRUD is public and map API implementation is never mounted on RonoloJ_bagoR #36
+Open
+Open
+[\[High\]\[Legacy branch\] Profile CRUD is public and map API implementation is never mounted on RonoloJ_bagoR](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/36#top)#36
+Description
+[maxangelo987](https://github.com/maxangelo987)
+opened [2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/36#issue-5343518269)
+Collaborative backlog audit scope
+Project: Bohol Cacao System Phase 4Branch: RonoloJ_bagoR (diverged from current main; 5 commits ahead / 67 behind at review time)
+High — mounted profile endpoints have no authentication/RBAC boundary
+Server/server.js mounts Profile directly at /profile. In Server/routes/profile.routes.js, the branch exposes:
+POST /profile/add
+GET /profile/get_all
+POST /profile/delete
+with no authentication, ownership, or role-authorization middleware in the router or at the mount point.
+The profile payload/response domain includes personal, household, farm-income, business, address/location, contact, and employment fields. If this legacy branch is deployed or reused, anonymous callers can potentially enumerate profile records and create/delete them.
+The relational calls use named parameterized stored procedures, which is positive and should be preserved. The defect is the missing server-verifiable identity/authorization boundary.
+The profile error paths also return interpolated runtime/database error detail to clients. Return generic production-safe errors and retain diagnostics only in restricted logs.
+Medium — newly added map API router is unreachable
+The branch adds Server/routes/maps.routes.js with parameterized stored-procedure endpoints for municipality/Bohol land suitability and sampling sites, including save/delete operations. However, the reviewed Server/server.js neither imports nor mounts this router, so those endpoints are unreachable and cannot be integration-tested through the application.
+Before mounting it, add explicit authentication/RBAC for every mutation, decide/document whether reads are intentionally public, validate IDs/coordinates/GeoJSON inputs, and sanitize err.message responses. Preserve the current parameterized CALL sp_* pattern.
+Required remediation
+Require a server-verifiable session/JWT before sensitive profile reads and all profile mutations.
+Apply least-privilege RBAC/ownership/scope checks; do not treat caller-selected IDs as authorization.
+Keep profile and maps runtime relational operations parameterized and stored-procedure-only.
+Sanitize client errors and avoid logging/reproducing personal profile data.
+If the map module is intended for this lineage, explicitly mount it after authentication/authorization is defined and add route-level integration tests.
+Add negative tests for anonymous/wrong-role/cross-scope profile operations and unauthorized map mutations, plus successful authorized SP-backed paths.
+Branch naming/process warning
+RonoloJ_bagoR is contributor-oriented and does not identify the task/module. Do not rename/rewrite this historical branch solely for the audit. For future work, use task-aligned names such as fix/profile-access-control, feature/map-land-suitability-api, or the actual assigned task.
+Suggested DSA course task
+Suggested DSA course task — W2 ADTs/data flow/backend operations; W16 testing/evidence: document and test request → authenticated principal → authorization → validation → parameterized SP → sanitized response, with integration evidence for the map router if it is retained.
+No application source, branch state, PR state, or deployment was modified by this audit. No secret values or personal records are reproduced here.
+Activity
+maxangelo987 commented 2 weeks ago
+[maxangelo987](https://github.com/maxangelo987)
+[2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/36#issuecomment-5537241776) – with [ChatGPT Codex Connector](https://www.chatgpt.com/)
+Author
+Backlog verification on legacy branch bunao @ ec4b081c (0 ahead / 67 behind main): this branch independently confirms the High profile authorization condition already tracked here. Server/server.js mounts /profile directly, and profile.routes.js exposes add, get-all, and delete operations without visible server-verifiable authentication, RBAC, ownership, or scope checks. The profile domain includes personal/contact/household/farm/business fields, so anonymous enumeration/mutation remains unsafe if this lineage is reused or deployed. Positive control: the reviewed profile persistence uses named parameterized stored-procedure calls; preserve that boundary while adding authorization. Error handlers also return raw runtime/database details and should be sanitized.
+Branch-naming/process warning: bunao is personal/vague and does not identify the implemented task. Do not rename/rewrite this historical branch solely for the audit; use task-oriented future names such as fix/profile-access-control or the actual assigned module.
+No new duplicate issue opened; this is branch-specific verification of the canonical finding. No current-team collaboration-participation inference is made from this September 2025 legacy branch.
+maxangelo987 commented 2 weeks ago
+[maxangelo987](https://github.com/maxangelo987)
+[2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/36#issuecomment-5542442382) – with [ChatGPT Codex Connector](https://www.chatgpt.com/)
+Author
+[Collaborative backlog verification — 2026-09-04 PHT]
+Substantively audited previously uncovered jamess @ 9988b548 (diverged: 2 commits ahead / 26 behind current main). This branch independently preserves the canonical [#36](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/36) profile access-control defect and broadens the same authorization boundary problem to related profile-linked checklist routes:
+Server/server.js mounts /profile, /occupation_checklist, and /profile_checklist without server-verifiable authentication/RBAC (/profile has an upload rate limiter, not authorization).
+POST /profile/add, GET /profile/get_all, and POST /profile/delete remain callable without principal-derived ownership/scope checks.
+POST /occupation_checklist/add and /get_all trust caller-supplied profile_id (plus occupation_id for mutation).
+POST /profile_checklist/add trusts caller-supplied profile_id and profile_type_id.
+Reviewed relational calls are parameterized CALL sp_* stored procedures; preserve that positive boundary.
+Several handlers still return raw runtime/database exception detail to clients.
+Required remediation remains: authenticate first; derive authorization/ownership/scope from the verified principal rather than caller-selected profile IDs; add anonymous/wrong-role/cross-profile negative tests; keep parameterized stored procedures; return generic production-safe errors.
+Branch naming advisory: jamess is vague/contributor-oriented and does not identify the task. Future work should use task/module-oriented names such as fix/profile-checklist-authz or refactor/profile-sp-client. No branch/source/PR state was modified.
+
+
+issue 9
+
+
+[High][AuthZ/SP] Message routes trust caller-selected identities and fall back to direct relational SQL #37
+Open
+Open
+[\[High\]\[AuthZ/SP\] Message routes trust caller-selected identities and fall back to direct relational SQL](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/37#top)#37
+Description
+[maxangelo987](https://github.com/maxangelo987)
+opened [1w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/37#issue-5360440781)
+Backlog substantive audit of main (a94023cec148bf00c5d42379f5bdafc4d30485b0) found a distinct direct-messaging authorization and database-boundary issue.
+Verified findings
+Server/server.js mounts /messages directly, with no server-verifiable authentication middleware at the mount point.
+/messages/conversations and /messages/thread trust caller-supplied userId/partnerId query parameters. /messages/send trusts caller-supplied senderId/receiverId and uses those values to resolve canonical accounts. The reviewed router does not derive sender identity from a verified authenticated principal or enforce ownership/authorization before reading or sending messages.
+The stored-procedure path is not fail-closed. On SP errors, directory/conversation/thread handlers fall back to runtime direct SELECT queries; thread fallback also performs a direct UPDATE direct_messages SET is_read = 1.
+insertNotification(...) performs a direct runtime INSERT INTO notifications. After sp_message_send(...), the route also directly selects the inserted message row. Under the MAKASA relational database policy, direct runtime business writes are High severity and direct business reads are at least Medium, even when parameterized.
+Multiple 500 responses return raw err.message to clients.
+Socket.IO room joining in server.js accepts an arbitrary caller-provided userId without visible authentication, so the real-time channel should be included in the authorization redesign rather than treated as trusted identity.
+Required remediation
+Require server-verifiable authentication on message HTTP routes and Socket.IO connections.
+Derive the sender/current-user identity from the verified principal; treat receiver/partner IDs only as requested targets, not authorization.
+Enforce conversation/thread authorization so a user can access only message data they are entitled to see.
+Remove direct-SQL fallbacks. Keep runtime relational business operations behind named parameterized stored procedures, including alias resolution, directory reads, thread/conversation reads, read-state updates, notification writes, and saved-message retrieval. Fail closed when required SPs are unavailable.
+Bind Socket.IO rooms to the authenticated socket principal rather than arbitrary join(userId) input.
+Return generic production-safe errors while retaining diagnostics only in protected server logs.
+Add negative tests for anonymous access, forged sender/user IDs, cross-user thread access, unauthorized socket room joins, SP failure behavior, and sanitized 5xx responses.
+Suggested DSA course task
+W2 — ADTs/data flow/backend operations; W16 — testing/evidence: document and test authenticated principal → authorization → validated target → parameterized SP → sanitized response/event, including negative authorization and SP-failure tests.
+No application source, source branch, PR state, or deployment was modified by this audit.
+Activity
+maxangelo987 commented 5 days ago
+[maxangelo987](https://github.com/maxangelo987)
+[5d ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/37#issuecomment-5615464959) – with [ChatGPT Codex Connector](https://www.chatgpt.com/)
+Author
+[Collaborative-only backlog verification — 2026-09-10 16:19 PHT] shary_ @ a94023ce independently re-verifies this canonical finding. Server/server.js mounts /messages without authentication and allows Socket.IO clients to join(userId) for arbitrary caller-supplied IDs. Server/routes/messages.routes.js accepts caller-selected userId/partnerId for conversations/threads and senderId/receiverId for sends, while SP failures fall back to direct runtime relational SELECT/UPDATE and notification insertion uses direct INSERT; raw err.message is returned on multiple 500 paths. No secret/record values reproduced. Required remediation remains authenticated principal-derived identity for HTTP + Socket.IO, per-thread/target authorization, fail-closed parameterized-SP-only relational access, and sanitized errors with negative tests. Branch naming advisory: shary_ is personal/vague; future work should use task-oriented names such as fix/message-authz-sp-boundary or fix/socket-room-auth.
+
+
+this all issue in the 
+
+BCIIS-Server
+ scan, read, analyze absorved this entire BCIIS_Server then fix the all issue pasted above here then make perfect.
+
+09-15-26.sql
+ 
