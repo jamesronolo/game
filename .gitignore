@@ -509,3 +509,96 @@ BCIIS-Server
 
 09-15-26.sql
  
+import tensorflow_datasets as tfds
+import json
+from pathlib import Path
+
+# Cebuano Wikipedia 2023
+DATASET = "wikipedia/20230601.ceb"
+
+# Project directories
+PROJECT_DIR = Path(__file__).resolve().parent
+DATA_DIR = PROJECT_DIR / "tfds_data"
+OUTPUT_DIR = PROJECT_DIR / "Cebuano_Wikipedia_2023"
+
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+OUTPUT_FILE = OUTPUT_DIR / "cebuano_dataset.jsonl"
+
+def decode(value):
+    if isinstance(value, bytes):
+        return value.decode("utf-8")
+    return str(value)
+
+def main():
+
+    print("=" * 50)
+    print("CEBUANO WIKIPEDIA DATASET DOWNLOADER")
+    print("=" * 50)
+
+    print("Dataset:", DATASET)
+    print("Project:", PROJECT_DIR)
+
+    # Load the selected dataset configuration
+    builder = tfds.builder(
+        DATASET,
+        data_dir=str(DATA_DIR)
+    )
+
+    print("\nPreparing dataset...")
+    print("This may take some time.")
+
+    # Download and prepare dataset
+    builder.download_and_prepare()
+
+    print("\nDataset preparation completed!")
+    print("Dataset information:")
+    print(builder.info)
+
+    # Read the training records
+    dataset = builder.as_dataset(
+        split="train",
+        shuffle_files=False
+    )
+
+    count = 0
+
+    print("\nExporting records to JSONL...")
+
+    with open(
+        OUTPUT_FILE,
+        "w",
+        encoding="utf-8"
+    ) as file:
+
+        for row in tfds.as_numpy(dataset):
+
+            record = {
+                "title": decode(row["title"]),
+                "text": decode(row["text"]),
+                "language": "ceb"
+            }
+
+            file.write(
+                json.dumps(
+                    record,
+                    ensure_ascii=False
+                ) + "\n"
+            )
+
+            count += 1
+
+            if count % 100000 == 0:
+                print("Exported records:", count)
+
+    print("\n" + "=" * 50)
+    print("DOWNLOAD AND EXPORT COMPLETED!")
+    print("=" * 50)
+
+    print("Total records:", count)
+    print("Output file:", OUTPUT_FILE)
+    print("File size (GB):",
+          round(OUTPUT_FILE.stat().st_size / (1024 ** 3), 3))
+
+if __name__ == "__main__":
+    main()
