@@ -405,29 +405,3 @@ dev is too generic for active implementation work. Do not rename or rewrite this
 No secret values or application records are reproduced in this issue.
 
 
-issue 8
-
-
-[High][Legacy branch] Profile CRUD is public and map API implementation is never mounted on RonoloJ_bagoR #36
-Open
-Open
-[\[High\]\[Legacy branch\] Profile CRUD is public and map API implementation is never mounted on RonoloJ_bagoR](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/36#top)#36
-Description
-[maxangelo987](https://github.com/maxangelo987)
-opened [2w ago](https://github.com/MAKASA-LABORATORY/BCIIS-Server/issues/36#issue-5343518269)
-Collaborative backlog audit scope
-Project: Bohol Cacao System Phase 4Branch: RonoloJ_bagoR (diverged from current main; 5 commits ahead / 67 behind at review time)
-High — mounted profile endpoints have no authentication/RBAC boundary
-Server/server.js mounts Profile directly at /profile. In Server/routes/profile.routes.js, the branch exposes:
-POST /profile/add
-GET /profile/get_all
-POST /profile/delete
-with no authentication, ownership, or role-authorization middleware in the router or at the mount point.
-The profile payload/response domain includes personal, household, farm-income, business, address/location, contact, and employment fields. If this legacy branch is deployed or reused, anonymous callers can potentially enumerate profile records and create/delete them.
-The relational calls use named parameterized stored procedures, which is positive and should be preserved. The defect is the missing server-verifiable identity/authorization boundary.
-The profile error paths also return interpolated runtime/database error detail to clients. Return generic production-safe errors and retain diagnostics only in restricted logs.
-Medium — newly added map API router is unreachable
-The branch adds Server/routes/maps.routes.js with parameterized stored-procedure endpoints for municipality/Bohol land suitability and sampling sites, including save/delete operations. However, the reviewed Server/server.js neither imports nor mounts this router, so those endpoints are unreachable and cannot be integration-tested through the application.
-Before mounting it, add explicit authentication/RBAC for every mutation, decide/document raw)}draw();send();</script></html>)HTML";
-void setup(){
- 
